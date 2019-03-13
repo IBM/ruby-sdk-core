@@ -19,9 +19,10 @@ install:
   - npm install -g semantic-release
   - npm install -g @semantic-release/exec
   - npm install -g @semantic-release/git
+  - bundle install
 
 script:
-- bundle exec rake
+  - bundle exec rake
 
 before_deploy:
   - bundle exec rake test:appveyor_status
