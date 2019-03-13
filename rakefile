@@ -29,10 +29,9 @@ namespace :test do
   end
 end
 
-desc "Run unit & integration tests"
+desc "Run unit tests"
 task :test do
   Rake::Task["test:unit"].invoke
-  Rake::Task["test:integration"].invoke
 end
 
 desc "Run tests and generate a code coverage report"
