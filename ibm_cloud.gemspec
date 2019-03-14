@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.version = IBMCloudSdkCore::VERSION
   spec.authors = ["Mamoon Raja"]
 
-  spec.summary = "Official client library to use the IBM Cloud servicess"
+  spec.summary = "Official IBM Cloud SDK core library"
   spec.homepage = "https://www.github.com/IBM"
   spec.licenses = ["Apache-2.0"]
   spec.required_ruby_version = ">= 2.3"

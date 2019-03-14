@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require_relative("./../../lib/ibm_cloud_sdk_core/iam_token_manager.rb")
 require_relative("./../test_helper.rb")
 require("webmock/minitest")
 
@@ -35,6 +34,60 @@ class IAMTokenManagerTest < Minitest::Test
       ).to_return(status: 200, body: response.to_json, headers: {})
     token_response = token_manager.send(:request_token)
     assert_equal(response, token_response)
+  end
+
+  def test_request_token_fails
+    iam_url = "https://iam.bluemix.net/identity/token"
+    token_manager = IAMTokenManager.new(
+      iam_apikey: "iam_apikey",
+      iam_access_token: "iam_access_token",
+      iam_url: iam_url
+    )
+    response = {
+      "code" => "500",
+      "error" => "Oh no"
+    }
+    stub_request(:post, "https://iam.bluemix.net/identity/token")
+      .with(
+        body: { "apikey" => "iam_apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
+        headers: {
+          "Accept" => "application/json",
+          "Authorization" => "Basic Yng6Yng=",
+          "Content-Type" => "application/x-www-form-urlencoded",
+          "Host" => "iam.bluemix.net"
+        }
+      ).to_return(status: 500, body: response.to_json, headers: {})
+    assert_raises do
+      token_manager.send(:request_token)
+    end
+  end
+
+  def test_request_token_fails_catch_exception
+    iam_url = "https://iam.bluemix.net/identity/token"
+    token_manager = IAMTokenManager.new(
+      iam_apikey: "iam_apikey",
+      iam_access_token: "iam_access_token",
+      iam_url: iam_url
+    )
+    response = {
+      "code" => "500",
+      "error" => "Oh no"
+    }
+    stub_request(:post, "https://iam.bluemix.net/identity/token")
+      .with(
+        body: { "apikey" => "iam_apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
+        headers: {
+          "Accept" => "application/json",
+          "Authorization" => "Basic Yng6Yng=",
+          "Content-Type" => "application/x-www-form-urlencoded",
+          "Host" => "iam.bluemix.net"
+        }
+      ).to_return(status: 401, body: response.to_json, headers: {})
+    begin
+      token_manager.send(:request_token)
+    rescue ApiException => e
+      assert(e.to_s.instance_of?(String))
+    end
   end
 
   def test_refresh_token
