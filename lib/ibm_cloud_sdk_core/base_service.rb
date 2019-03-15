@@ -37,12 +37,15 @@ module IBMCloudSdkCore
       @iam_apikey = nil
       @token_manager = nil
       @temp_headers = nil
-      @icp_prefix = vars[:password]&.start_with?("icp-") ? true : false
+      @icp_prefix = vars[:password]&.start_with?("icp-") || vars[:iam_apikey]&.start_with?("icp-") ? true : false
       @disable_ssl_verification = false
       @display_name = vars[:display_name]
 
-      if !vars[:iam_access_token].nil? || !vars[:iam_apikey].nil?
+      if (!vars[:iam_access_token].nil? || !vars[:iam_apikey].nil?) && !@icp_prefix
         set_token_manager(iam_apikey: vars[:iam_apikey], iam_access_token: vars[:iam_access_token], iam_url: vars[:iam_url])
+      elsif !vars[:iam_apikey].nil? && @icp_prefix
+        @username = "apikey"
+        @password = vars[:iam_apikey]
       elsif !vars[:username].nil? && !vars[:password].nil?
         if vars[:username] == "apikey" && !@icp_prefix
           iam_apikey(iam_apikey: vars[:password])
@@ -55,6 +58,7 @@ module IBMCloudSdkCore
       if @display_name && !@username && !@iam_apikey
         service_name = @display_name.sub(" ", "_").downcase
         load_from_credential_file(service_name)
+        @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
       end
 
       if vars[:use_vcap_services] && !@username && !@iam_apikey
@@ -66,6 +70,7 @@ module IBMCloudSdkCore
           @iam_apikey = @vcap_service_credentials["iam_apikey"] if @vcap_service_credentials.key?("iam_apikey")
           @iam_access_token = @vcap_service_credentials["iam_access_token"] if @vcap_service_credentials.key?("iam_access_token")
           @iam_url = @vcap_service_credentials["iam_url"] if @vcap_service_credentials.key?("iam_url")
+          @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
         end
       end
 
@@ -152,7 +157,9 @@ module IBMCloudSdkCore
       end
 
       conn = @conn
-      if !@token_manager.nil?
+      if !@iam_apikey.nil? && @icp_prefix
+        conn = @conn.basic_auth(user: "apikey", pass: @iam_apikey)
+      elsif !@token_manager.nil?
         access_token = @token_manager.token
         args[:headers]["Authorization"] = "Bearer #{access_token}"
       elsif !@username.nil? && !@password.nil?

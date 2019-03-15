@@ -153,6 +153,56 @@ class BaseServiceTest < Minitest::Test
     assert_equal(response, service_response.result)
   end
 
+  def test_dummy_request_icp_iam_apikey
+    response = {
+      "text" => "I want financial advice today.",
+      "created" => "2016-07-11T16:39:01.774Z",
+      "updated" => "2015-12-07T18:53:59.153Z"
+    }
+    headers = {
+      "Content-Type" => "application/json"
+    }
+    stub_request(:get, "https://we.the.best/music")
+      .with(
+        headers: {
+          "Authorization" => "Basic YXBpa2V5OmljcC14eXo=",
+          "Host" => "we.the.best"
+        }
+      ).to_return(status: 200, body: response.to_json, headers: headers)
+    service = IBMCloudSdkCore::BaseService.new(
+      url: "https://we.the.best",
+      iam_apikey: "icp-xyz"
+    )
+    service_response = service.request(method: "GET", url: "/music", headers: {})
+    assert_equal(response, service_response.result)
+  end
+
+  def test_dummy_request_icp_iam_apikey_cred_file
+    response = {
+      "text" => "I want financial advice today.",
+      "created" => "2016-07-11T16:39:01.774Z",
+      "updated" => "2015-12-07T18:53:59.153Z"
+    }
+    headers = {
+      "Content-Type" => "application/json"
+    }
+    stub_request(:get, "https://we.the.best/music")
+      .with(
+        headers: {
+          "Authorization" => "Basic YXBpa2V5OmljcC14eXo=",
+          "Host" => "we.the.best"
+        }
+      ).to_return(status: 200, body: response.to_json, headers: headers)
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
+    service = IBMCloudSdkCore::BaseService.new(
+      url: "https://we.the.best",
+      display_name: "messi"
+    )
+    service_response = service.request(method: "GET", url: "/music", headers: {})
+    assert_equal(response, service_response.result)
+  end
+
   def test_dummy_request_username_apikey
     response = {
       "text" => "I want financial advice today.",

@@ -13,24 +13,21 @@ module IBMCloudSdkCore
         @error = response.reason
         unless response.body.empty?
           body_hash = JSON.parse(response.body.to_s)
+          error_message = body_hash["errors"] && body_hash["errors"][0] ? body_hash["errors"][0].message : nil
           @code = body_hash["code"] || body_hash["error_code"] || body_hash["status"]
-          @error = body_hash["error"] || body_hash["error_message"] || body_hash["message"] || body_hash["statusInfo"] || body_hash["description"]
-          %w[code error_code status error error_message statusInfo description].each { |k| body_hash.delete(k) }
+          @error = error_message || body_hash["error"] || body_hash["message"]
+          %w[code error_code status errors error message].each { |k| body_hash.delete(k) }
           @info = body_hash
         end
-        @transaction_id = transaction_id
-        @global_transaction_id = global_transaction_id
-        @transaction_id = response.headers["X-DP-Watson-Tran-ID"] if response.headers.include?("X-DP-Watson-Tran-ID")
-        @global_transaction_id = response.headers["X-Global-Transaction-ID"] if response.headers.include?("X-Global-Transaction-ID")
       else
         # :nocov:
         @code = code
         @error = error
         @info = info
-        @transaction_id = transaction_id
-        @global_transaction_id = global_transaction_id
         # :nocov:
       end
+      @transaction_id = transaction_id
+      @global_transaction_id = global_transaction_id
     end
 
     def to_s
