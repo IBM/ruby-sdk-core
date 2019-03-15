@@ -17,7 +17,7 @@ class IAMTokenManagerTest < Minitest::Test
       "refresh_token" => "jy4gl91BQ"
     }
 
-    token_manager = IAMTokenManager.new(
+    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
       iam_apikey: "iam_apikey",
       iam_access_token: "iam_access_token",
       iam_url: iam_url
@@ -38,7 +38,7 @@ class IAMTokenManagerTest < Minitest::Test
 
   def test_request_token_fails
     iam_url = "https://iam.bluemix.net/identity/token"
-    token_manager = IAMTokenManager.new(
+    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
       iam_apikey: "iam_apikey",
       iam_access_token: "iam_access_token",
       iam_url: iam_url
@@ -64,7 +64,7 @@ class IAMTokenManagerTest < Minitest::Test
 
   def test_request_token_fails_catch_exception
     iam_url = "https://iam.bluemix.net/identity/token"
-    token_manager = IAMTokenManager.new(
+    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
       iam_apikey: "iam_apikey",
       iam_access_token: "iam_access_token",
       iam_url: iam_url
@@ -85,7 +85,7 @@ class IAMTokenManagerTest < Minitest::Test
       ).to_return(status: 401, body: response.to_json, headers: {})
     begin
       token_manager.send(:request_token)
-    rescue ApiException => e
+    rescue IBMCloudSdkCore::ApiException => e
       assert(e.to_s.instance_of?(String))
     end
   end
@@ -99,7 +99,7 @@ class IAMTokenManagerTest < Minitest::Test
       "expiration" => 1_524_167_011,
       "refresh_token" => "jy4gl91BQ"
     }
-    token_manager = IAMTokenManager.new(
+    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
       iam_apikey: "iam_apikey",
       iam_access_token: "iam_access_token",
       iam_url: iam_url
@@ -119,7 +119,7 @@ class IAMTokenManagerTest < Minitest::Test
   end
 
   def test_is_token_expired
-    token_manager = IAMTokenManager.new(
+    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
       iam_apikey: "iam_apikey",
       iam_access_token: "iam_access_token",
       iam_url: "iam_url"
@@ -138,7 +138,7 @@ class IAMTokenManagerTest < Minitest::Test
   end
 
   def test_is_refresh_token_expired
-    token_manager = IAMTokenManager.new(
+    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
       iam_apikey: "iam_apikey",
       iam_access_token: "iam_access_token",
       iam_url: "iam_url"
@@ -158,7 +158,7 @@ class IAMTokenManagerTest < Minitest::Test
 
   def test_get_token
     iam_url = "https://iam.bluemix.net/identity/token"
-    token_manager = IAMTokenManager.new(
+    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
       iam_apikey: "iam_apikey",
       iam_url: iam_url
     )
