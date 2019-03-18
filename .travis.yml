@@ -25,9 +25,6 @@ install:
 script:
   - bundle exec rake
 
-before_deploy:
-  - bundle exec rake test:appveyor_status
-
 deploy:
   - provider: script
     script: npx semantic-release
