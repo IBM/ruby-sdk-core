@@ -15,7 +15,7 @@ module IBMCloudSdkCore
           body_hash = JSON.parse(response.body.to_s)
           error_message = body_hash["errors"] && body_hash["errors"][0] ? body_hash["errors"][0].message : nil
           @code = body_hash["code"] || body_hash["error_code"] || body_hash["status"]
-          @error = error_message || body_hash["error"] || body_hash["message"]
+          @error = error_message || body_hash["error"] || body_hash["message"] || body_hash["errorMessage"]
           %w[code error_code status errors error message].each { |k| body_hash.delete(k) }
           @info = body_hash
         end
