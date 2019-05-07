@@ -36,7 +36,7 @@ class IAMTokenManagerTest < Minitest::Test
   end
 
   def test_request_token_fails
-    iam_url = "https://iam.bluemix.net/identity/token"
+    iam_url = "https://iam.cloud.ibm.com/identity/token"
     token_manager = IBMCloudSdkCore::IAMTokenManager.new(
       iam_apikey: "iam_apikey",
       iam_access_token: "iam_access_token",
@@ -46,14 +46,14 @@ class IAMTokenManagerTest < Minitest::Test
       "code" => "500",
       "error" => "Oh no"
     }
-    stub_request(:post, "https://iam.bluemix.net/identity/token")
+    stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
       .with(
         body: { "apikey" => "iam_apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
         headers: {
           "Accept" => "application/json",
           "Authorization" => "Basic Yng6Yng=",
           "Content-Type" => "application/x-www-form-urlencoded",
-          "Host" => "iam.bluemix.net"
+          "Host" => "iam.cloud.ibm.com"
         }
       ).to_return(status: 500, body: response.to_json, headers: {})
     assert_raises do
