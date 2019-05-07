@@ -220,7 +220,7 @@ class BaseServiceTest < Minitest::Test
     headers = {
       "Content-Type" => "application/json"
     }
-    stub_request(:post, "https://iam.bluemix.net/identity/token")
+    stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
       .with(
         body: {
           "apikey" => "xyz",
@@ -232,7 +232,7 @@ class BaseServiceTest < Minitest::Test
           "Authorization" => "Basic Yng6Yng=",
           "Connection" => "close",
           "Content-Type" => "application/x-www-form-urlencoded",
-          "Host" => "iam.bluemix.net",
+          "Host" => "iam.cloud.ibm.com",
           "User-Agent" => "http.rb/4.1.1"
         }
       ).to_return(status: 200, body: token_response.to_json, headers: {})
@@ -269,7 +269,7 @@ class BaseServiceTest < Minitest::Test
     headers = {
       "Content-Type" => "application/json"
     }
-    stub_request(:post, "https://iam.bluemix.net/identity/token")
+    stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
       .with(
         body: {
           "apikey" => "xyz",
@@ -281,7 +281,7 @@ class BaseServiceTest < Minitest::Test
           "Authorization" => "Basic Yng6Yng=",
           "Connection" => "close",
           "Content-Type" => "application/x-www-form-urlencoded",
-          "Host" => "iam.bluemix.net",
+          "Host" => "iam.cloud.ibm.com",
           "User-Agent" => "http.rb/4.1.1"
         }
       ).to_return(status: 200, body: token_response.to_json, headers: {})
