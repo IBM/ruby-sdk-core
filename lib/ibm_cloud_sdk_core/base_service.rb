@@ -28,6 +28,8 @@ module IBMCloudSdkCore
         iam_apikey: nil,
         iam_access_token: nil,
         iam_url: nil,
+        iam_client_id: nil,
+        iam_client_secret: nil,
         display_name: nil
       }
       vars = defaults.merge(vars)
@@ -42,7 +44,9 @@ module IBMCloudSdkCore
       @display_name = vars[:display_name]
 
       if (!vars[:iam_access_token].nil? || !vars[:iam_apikey].nil?) && !@icp_prefix
-        set_token_manager(iam_apikey: vars[:iam_apikey], iam_access_token: vars[:iam_access_token], iam_url: vars[:iam_url])
+        set_token_manager(iam_apikey: vars[:iam_apikey], iam_access_token: vars[:iam_access_token],
+                          iam_url: vars[:iam_url], iam_client_id: vars[:iam_client_id],
+                          iam_client_secret: vars[:iam_client_secret])
       elsif !vars[:iam_apikey].nil? && @icp_prefix
         @username = "apikey"
         @password = vars[:iam_apikey]
@@ -244,11 +248,16 @@ module IBMCloudSdkCore
       return str.start_with?("{", "\"") || str.end_with?("}", "\"") unless str.nil?
     end
 
-    def set_token_manager(iam_apikey: nil, iam_access_token: nil, iam_url: nil)
+    def set_token_manager(iam_apikey: nil, iam_access_token: nil, iam_url: nil,
+                          iam_client_id: nil, iam_client_secret: nil)
       @iam_apikey = iam_apikey
       @iam_access_token = iam_access_token
       @iam_url = iam_url
-      @token_manager = IAMTokenManager.new(iam_apikey: iam_apikey, iam_access_token: iam_access_token, iam_url: iam_url)
+      @iam_client_id = iam_client_id
+      @iam_client_secret = iam_client_secret
+      @token_manager =
+        IAMTokenManager.new(iam_apikey: iam_apikey, iam_access_token: iam_access_token,
+                            iam_url: iam_url, iam_client_id: iam_client_id, iam_client_secret: iam_client_secret)
     end
 
     def add_timeout(timeout)
