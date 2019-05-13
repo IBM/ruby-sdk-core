@@ -12,6 +12,8 @@
 .DS_Store
 test/html_reports/
 .project
+.pre-commit-config.yaml
+.secrets.baseline
 
 # Used by dotenv library to load environment variables.
 .env
