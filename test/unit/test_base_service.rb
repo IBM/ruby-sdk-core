@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require("json")
+require("jwt")
 require_relative("./../test_helper.rb")
 require("webmock/minitest")
 
@@ -209,8 +210,21 @@ class BaseServiceTest < Minitest::Test
       "created" => "2016-07-11T16:39:01.774Z",
       "updated" => "2015-12-07T18:53:59.153Z"
     }
+    access_token_layout = {
+      "username" => "dummy",
+      "role" => "Admin",
+      "permissions" => %w[administrator manage_catalog],
+      "sub" => "admin",
+      "iss" => "sss",
+      "aud" => "sss",
+      "uid" => "sss",
+      "iat" => 3600,
+      "exp" => Time.now.to_i
+    }
+
+    access_token = JWT.encode(access_token_layout, "secret", "HS256", "kid": "230498151c214b788dd97f22b85410a5")
     token_response = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
+      "access_token" => access_token,
       "token_type" => "Bearer",
       "expires_in" => 3600,
       "expiration" => 1_524_167_011,
@@ -239,7 +253,7 @@ class BaseServiceTest < Minitest::Test
     stub_request(:get, "https://we.the.best/music")
       .with(
         headers: {
-          "Authorization" => "Bearer oAeisG8yqPY7sFR_x66Z15",
+          "Authorization" => "Bearer " + access_token,
           "Host" => "we.the.best"
         }
       ).to_return(status: 200, body: response.to_json, headers: headers)
@@ -258,8 +272,22 @@ class BaseServiceTest < Minitest::Test
       "created" => "2016-07-11T16:39:01.774Z",
       "updated" => "2015-12-07T18:53:59.153Z"
     }
+
+    access_token_layout = {
+      "username" => "dummy",
+      "role" => "Admin",
+      "permissions" => %w[administrator manage_catalog],
+      "sub" => "admin",
+      "iss" => "sss",
+      "aud" => "sss",
+      "uid" => "sss",
+      "iat" => 3600,
+      "exp" => Time.now.to_i
+    }
+
+    access_token = JWT.encode(access_token_layout, "secret", "HS256", "kid": "230498151c214b788dd97f22b85410a5")
     token_response = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
+      "access_token" => access_token,
       "token_type" => "Bearer",
       "expires_in" => 3600,
       "expiration" => 1_524_167_011,
@@ -288,7 +316,7 @@ class BaseServiceTest < Minitest::Test
     stub_request(:get, "https://we.the.best/music")
       .with(
         headers: {
-          "Authorization" => "Bearer oAeisG8yqPY7sFR_x66Z15",
+          "Authorization" => "Bearer " + access_token,
           "Host" => "we.the.best"
         }
       ).to_return(status: 200, body: response.to_json, headers: headers)
