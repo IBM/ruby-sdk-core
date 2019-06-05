@@ -9,13 +9,13 @@ require_relative("./jwt_token_manager")
 module IBMCloudSdkCore
   # Class to manage ICP4D Token Authentication
   class ICP4DTokenManager < JWTTokenManager
-    def initialize(icp4d_url: nil, username: nil, password: nil, icp4d_access_token: nil)
+    def initialize(icp4d_url: nil, username: nil, password: nil, access_token: nil)
       raise ArgumentError.new("`url` is a required parameter for Icp4dTokenManagerV1") if icp4d_url.nil?
 
       icp4d_url += "/v1/preauth/validateAuth"
       @username = username
       @password = password
-      super(url: icp4d_url, user_access_token: icp4d_access_token)
+      super(url: icp4d_url, user_access_token: access_token)
     end
 
     def request_token

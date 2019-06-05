@@ -276,13 +276,13 @@ module IBMCloudSdkCore
                             iam_url: iam_url, iam_client_id: iam_client_id, iam_client_secret: iam_client_secret)
     end
 
-    def icp4d_token_manager(icp4d_access_token: nil)
+    def icp4d_token_manager(icp4d_access_token: nil, icp4d_url: nil)
       if !@token_manager.nil?
-        @token_manager.set_access_token(icp4d_access_token)
+        @token_manager.access_token(icp4d_access_token)
       else
-        raise ArgumentError.new("The icp4d_url is mandatory for ICP4D.") if @icp4d_url.nil?
+        raise ArgumentError.new("The icp4d_url is mandatory for ICP4D.") if icp4d_url.nil?
 
-        @token_manager = ICPTokenManager.new(url: @url, access_token: icp_access_token)
+        @token_manager = ICP4DTokenManager.new(icp4d_url: icp4d_url, access_token: icp4d_access_token)
       end
     end
 

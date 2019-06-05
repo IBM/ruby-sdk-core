@@ -266,6 +266,16 @@ class BaseServiceTest < Minitest::Test
     assert_equal(response, service_response.result)
   end
 
+  def test_for_icp4d
+    service = IBMCloudSdkCore::BaseService.new(
+      username: "hello",
+      password: "world",
+      icp4d_url: "service_url",
+      authentication_type: "icp4d"
+    )
+    refute_nil(service.token_manager)
+  end
+
   def test_dummy_request_username_apikey_cred_file
     response = {
       "text" => "I want financial advice today.",
