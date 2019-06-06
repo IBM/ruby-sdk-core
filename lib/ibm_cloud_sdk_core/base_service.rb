@@ -59,8 +59,8 @@ module IBMCloudSdkCore
         @username = "apikey"
         @password = vars[:iam_apikey]
       elsif @authentication_type == "icp4d" || !vars[:icp4d_access_token].nil?
-        icp4d_token_manager(icp4d_access_token: vars[:icp4d_access_token],
-                            icp4d_url: vars[:icp4d_url])
+        icp4d_token_manager(icp4d_access_token: vars[:icp4d_access_token], icp4d_url: vars[:icp4d_url],
+                            username: vars[:username], password: vars[:password])
       elsif !vars[:username].nil? && !vars[:password].nil?
         if vars[:username] == "apikey" && !@icp_prefix
           iam_apikey(iam_apikey: vars[:password])
@@ -276,13 +276,13 @@ module IBMCloudSdkCore
                             iam_url: iam_url, iam_client_id: iam_client_id, iam_client_secret: iam_client_secret)
     end
 
-    def icp4d_token_manager(icp4d_access_token: nil, icp4d_url: nil)
+    def icp4d_token_manager(icp4d_access_token: nil, icp4d_url: nil, username: nil, password: nil)
       if !@token_manager.nil?
         @token_manager.access_token(icp4d_access_token)
       else
-        raise ArgumentError.new("The icp4d_url is mandatory for ICP4D.") if icp4d_url.nil?
+        raise ArgumentError.new("The icp4d_url is mandatory for ICP4D.") if icp4d_url.nil? && icp4d_access_token.nil?
 
-        @token_manager = ICP4DTokenManager.new(icp4d_url: icp4d_url, access_token: icp4d_access_token)
+        @token_manager = ICP4DTokenManager.new(icp4d_url: icp4d_url, access_token: icp4d_access_token, username: username, password: password)
       end
     end
 

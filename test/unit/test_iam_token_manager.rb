@@ -93,16 +93,13 @@ class IAMTokenManagerTest < Minitest::Test
       iam_access_token: "iam_access_token",
       iam_url: "iam_url"
     )
-    token_manager.token_info = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
-      "token_type" => "Bearer",
-      "expires_in" => 3600,
-      "expiration" => Time.now.to_i + 6000,
-      "refresh_token" => "jy4gl91BQ"
-    }
 
+    assert(token_manager.send(:token_expired?))
+    token_manager.instance_variable_set(:@time_to_live, 3600)
+    token_manager.instance_variable_set(:@expire_time, Time.now.to_i + 6000)
     refute(token_manager.send(:token_expired?))
-    token_manager.token_info["expiration"] = Time.now.to_i - 3600
+    token_manager.instance_variable_set(:@time_to_live, 3600)
+    token_manager.instance_variable_set(:@expire_time, Time.now.to_i - 3600)
     assert(token_manager.send(:token_expired?))
   end
 
@@ -149,9 +146,8 @@ class IAMTokenManagerTest < Minitest::Test
           "Host" => "iam.cloud.ibm.com"
         }
       ).to_return(status: 200, body: response.to_json, headers: {})
-    token_manager.user_access_token = ""
     token = token_manager.token
-    assert_equal(access_token, token)
+    assert_equal(token_manager.user_access_token, token)
   end
 
   def test_client_id_only

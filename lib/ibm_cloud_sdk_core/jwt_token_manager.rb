@@ -29,11 +29,13 @@ module IBMCloudSdkCore
     end
 
     def token
-      return @user_access_token unless @user_access_token.nil? || @user_access_token == ""
-
-      token_info = request_token
-      save_token_info(token_info: token_info)
-      @token_info[TOKEN_NAME]
+      if !@user_access_token.nil?
+        @user_access_token
+      elsif @token_info.nil? || token_expired?
+        token_info = request_token
+        save_token_info(token_info: token_info)
+        @token_info[TOKEN_NAME]
+      end
     end
 
     def access_token(access_token)
@@ -47,12 +49,10 @@ module IBMCloudSdkCore
     # token expiring before the request could be made.
     # The buffer will be a fraction of the total TTL. Using 80%.
     def token_expired?
-      return true if @token_info["expiration"].nil? || @token_info["expires_in"].nil?
+      return true if @time_to_live.nil? || @expire_time.nil?
 
       fraction_of_ttl = 0.8
-      time_to_live = @token_info["expires_in"].nil? ? 0 : @token_info["expires_in"]
-      expire_time = @token_info["expiration"].nil? ? 0 : @token_info["expiration"]
-      refresh_time = expire_time - (time_to_live * (1.0 - fraction_of_ttl))
+      refresh_time = @expire_time - (@time_to_live * (1.0 - fraction_of_ttl))
       current_time = Time.now.to_i
       refresh_time < current_time
     end
@@ -64,7 +64,6 @@ module IBMCloudSdkCore
       iat = decoded_response[0]["iat"]
       @time_to_live = exp - iat
       @expire_time = exp
-      puts "ttl", @time_to_live
       @token_info = token_info
     end
 
