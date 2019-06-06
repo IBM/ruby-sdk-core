@@ -55,7 +55,7 @@ module IBMCloudSdkCore
         method: "POST",
         url: @iam_url,
         headers: headers,
-        data: data,
+        data: HTTP::URI.form_encode(data),
         username: @iam_client_id,
         password: @iam_client_secret
       )

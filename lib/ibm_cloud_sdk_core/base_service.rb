@@ -51,14 +51,14 @@ module IBMCloudSdkCore
       @disable_ssl_verification = false
       @display_name = vars[:display_name]
 
-      if @authentication_type == "iam" || (!vars[:iam_access_token].nil? || !vars[:iam_apikey].nil?)
+      if @authentication_type == "iam" || ((!vars[:iam_access_token].nil? || !vars[:iam_apikey].nil?) && !@icp_prefix)
         iam_token_manager(iam_apikey: vars[:iam_apikey], iam_access_token: vars[:iam_access_token],
                           iam_url: vars[:iam_url], iam_client_id: vars[:iam_client_id],
                           iam_client_secret: vars[:iam_client_secret])
       elsif !vars[:iam_apikey].nil? && @icp_prefix
         @username = "apikey"
         @password = vars[:iam_apikey]
-      elsif @authentication_type == "icp4d" || !vars[:icp_access_token].nil?
+      elsif @authentication_type == "icp4d" || !vars[:icp4d_access_token].nil?
         icp4d_token_manager(icp4d_access_token: vars[:icp4d_access_token],
                             icp4d_url: vars[:icp4d_url])
       elsif !vars[:username].nil? && !vars[:password].nil?
@@ -84,8 +84,8 @@ module IBMCloudSdkCore
           @password = @vcap_service_credentials["password"] if @vcap_service_credentials.key?("password")
           @iam_apikey = @vcap_service_credentials["iam_apikey"] if @vcap_service_credentials.key?("iam_apikey")
           @iam_access_token = @vcap_service_credentials["iam_access_token"] if @vcap_service_credentials.key?("iam_access_token")
-          @icp4d_access_token = @vcap_service_credentials["icp_access_token"] if @vcap_service_credentials.key?("icp4d_access_token")
-          @icp4d_url = @vcap_service_credentials["url"] if @vcap_service_credentials.key?("icp4d_url")
+          @icp4d_access_token = @vcap_service_credentials["icp4d_access_token"] if @vcap_service_credentials.key?("icp4d_access_token")
+          @icp4d_url = @vcap_service_credentials["icp4d_url"] if @vcap_service_credentials.key?("icp4d_url")
           @iam_url = @vcap_service_credentials["iam_url"] if @vcap_service_credentials.key?("iam_url")
           @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
         end
@@ -95,9 +95,9 @@ module IBMCloudSdkCore
       raise ArgumentError.new('The password shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your password') if check_bad_first_or_last_char(@password)
       raise ArgumentError.new('The url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your url') if check_bad_first_or_last_char(@url)
       raise ArgumentError.new('The apikey shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your apikey') if check_bad_first_or_last_char(@iam_apikey)
-      raise ArgumentError.new('The iam access token  shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your apikey') if check_bad_first_or_last_char(@iam_access_token)
-      raise ArgumentError.new('The icp4d access token  shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your apikey') if check_bad_first_or_last_char(@icp4d_access_token)
-      raise ArgumentError.new('The icp4d url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your apikey') if check_bad_first_or_last_char(@icp4d_url)
+      raise ArgumentError.new('The iam access token  shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your iam access token') if check_bad_first_or_last_char(@iam_access_token)
+      raise ArgumentError.new('The icp4d access token  shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your icp4d access token') if check_bad_first_or_last_char(@icp4d_access_token)
+      raise ArgumentError.new('The icp4d url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your icp4d url') if check_bad_first_or_last_char(@icp4d_url)
 
       @conn = HTTP::Client.new(
         headers: {}

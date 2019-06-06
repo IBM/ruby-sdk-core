@@ -339,4 +339,15 @@ class BaseServiceTest < Minitest::Test
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal(response, service_response.result)
   end
+
+  def test_icp4d_access_token
+    service = IBMCloudSdkCore::BaseService.new(
+      icp4d_url: "https://the.sixth.one",
+      icp4d_access_token: "token"
+    )
+    assert_equal(service.instance_variable_get(:@icp4d_access_token), "token")
+    service.send :icp4d_token_manager, icp4d_access_token: "new_token"
+    token_manager = service.instance_variable_get(:@token_manager)
+    assert_equal(token_manager.instance_variable_get(:@user_access_token), "new_token")
+  end
 end

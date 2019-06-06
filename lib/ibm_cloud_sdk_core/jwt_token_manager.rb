@@ -72,7 +72,7 @@ module IBMCloudSdkCore
       response = HTTP.basic_auth(user: username, pass: password).request(
         method,
         url,
-        body: HTTP::URI.form_encode(data),
+        body: data,
         headers: headers,
         params: params
       )
