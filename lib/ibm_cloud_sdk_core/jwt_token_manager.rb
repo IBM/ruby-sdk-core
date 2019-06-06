@@ -30,11 +30,11 @@ module IBMCloudSdkCore
     def token
       if !@user_access_token.nil?
         @user_access_token
-      elsif !@token_info.nil?
-        @token_info[TOKEN_NAME]
       elsif @token_info.nil? || token_expired?
         token_info = request_token
         save_token_info(token_info: token_info)
+        @token_info[TOKEN_NAME]
+      elsif !@token_info.nil?
         @token_info[TOKEN_NAME]
       end
     end

@@ -282,7 +282,7 @@ module IBMCloudSdkCore
       else
         raise ArgumentError.new("The icp4d_url is mandatory for ICP4D.") if icp4d_url.nil? && icp4d_access_token.nil?
 
-        @token_manager = ICP4DTokenManager.new(icp4d_url: icp4d_url, access_token: icp4d_access_token, username: username, password: password)
+        @token_manager = ICP4DTokenManager.new(url: icp4d_url, access_token: icp4d_access_token, username: username, password: password)
       end
     end
 

@@ -17,7 +17,7 @@ class ICP4DTokenManagerTest < Minitest::Test
     }
 
     token_manager = IBMCloudSdkCore::ICP4DTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
+      url: "https://the.sixth.one",
       username: "you",
       password: "me"
     )
@@ -36,7 +36,7 @@ class ICP4DTokenManagerTest < Minitest::Test
 
   def test_request_token_fails
     token_manager = IBMCloudSdkCore::ICP4DTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
+      url: "https://the.sixth.one",
       username: "you",
       password: "me"
     )
