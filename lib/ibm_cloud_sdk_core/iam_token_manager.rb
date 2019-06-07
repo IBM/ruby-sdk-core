@@ -17,6 +17,7 @@ module IBMCloudSdkCore
     DEFAULT_CLIENT_SECRET = "bx"
     REQUEST_TOKEN_GRANT_TYPE = "urn:ibm:params:oauth:grant-type:apikey"
     REQUEST_TOKEN_RESPONSE_TYPE = "cloud_iam"
+    TOKEN_NAME = "access_token"
 
     attr_accessor :token_info, :user_access_token
     def initialize(iam_apikey: nil, iam_access_token: nil, iam_url: nil,
@@ -24,7 +25,7 @@ module IBMCloudSdkCore
       @iam_apikey = iam_apikey
       @user_access_token = iam_access_token
       @iam_url = iam_url.nil? ? DEFAULT_IAM_URL : iam_url
-      super(url: iam_url, access_token: iam_access_token)
+      super(url: iam_url, access_token: iam_access_token, token_name: TOKEN_NAME)
 
       # Both the client id and secret should be provided or neither should be provided.
       if !iam_client_id.nil? && !iam_client_secret.nil?

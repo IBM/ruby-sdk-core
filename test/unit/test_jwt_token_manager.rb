@@ -85,7 +85,7 @@ class JWTTokenManagerTest < Minitest::Test
     access_token = JWT.encode(access_token_layout, "secret", "HS256", "kid": "230498151c214b788dd97f22b85410a5")
 
     token = {
-      "access_token" => access_token,
+      "accessToken" => access_token,
       "token_type" => "Bearer",
       "expires_in" => 3600,
       "expiration" => Time.now.to_i + (6 * 3600),
@@ -95,7 +95,8 @@ class JWTTokenManagerTest < Minitest::Test
     token_manager = IBMCloudSdkCore::JWTTokenManager.new(
       icp4d_url: "https://the.sixth.one",
       username: "you",
-      password: "me"
+      password: "me",
+      token_name: "accessToken"
     )
     token_manager.send(:save_token_info, token_info: token)
     token_response = token_manager.send(:token)

@@ -6,8 +6,6 @@ require("jwt")
 require("rbconfig")
 require_relative("./version.rb")
 
-TOKEN_NAME = "access_token"
-
 module IBMCloudSdkCore
   # Class to manage JWT Token Authentication
   class JWTTokenManager
@@ -22,6 +20,7 @@ module IBMCloudSdkCore
       @url = vars[:url]
       @token_info = vars[:token_info]
       @user_access_token = vars[:access_token]
+      @token_name = vars[:token_name]
       @time_to_live = nil
       @expire_time = nil
       @disable_ssl_verification = false
@@ -33,14 +32,18 @@ module IBMCloudSdkCore
       elsif @token_info.nil? || token_expired?
         token_info = request_token
         save_token_info(token_info: token_info)
-        @token_info[TOKEN_NAME]
+        @token_info[@token_name]
       elsif !@token_info.nil?
-        @token_info[TOKEN_NAME]
+        @token_info[@token_name]
       end
     end
 
     def access_token(access_token)
       @user_access_token = access_token
+    end
+
+    def ssl_verification(disable_ssl_verification)
+      @disable_ssl_verification = disable_ssl_verification
     end
 
     private
@@ -59,7 +62,7 @@ module IBMCloudSdkCore
     end
 
     def save_token_info(token_info: nil)
-      access_token = token_info[TOKEN_NAME]
+      access_token = token_info[@token_name]
       decoded_response = JWT.decode access_token, nil, false, {}
       exp = decoded_response[0]["exp"]
       iat = decoded_response[0]["iat"]
@@ -69,13 +72,26 @@ module IBMCloudSdkCore
     end
 
     def request(method:, url:, headers: nil, params: nil, data: nil, username: nil, password: nil)
-      response = HTTP.basic_auth(user: username, pass: password).request(
-        method,
-        url,
-        body: data,
-        headers: headers,
-        params: params
-      )
+      if @disable_ssl_verification
+        ssl_context = OpenSSL::SSL::SSLContext.new
+        ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        response = HTTP.basic_auth(user: username, pass: password).request(
+          method,
+          url,
+          body: data,
+          headers: headers,
+          params: params,
+          ssl_context: ssl_context
+        )
+      else
+        response = HTTP.basic_auth(user: username, pass: password).request(
+          method,
+          url,
+          body: data,
+          headers: headers,
+          params: params
+        )
+      end
       return JSON.parse(response.body.to_s) if (200..299).cover?(response.code)
 
       require_relative("./api_exception.rb")
