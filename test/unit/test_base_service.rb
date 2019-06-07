@@ -351,4 +351,27 @@ class BaseServiceTest < Minitest::Test
     token_manager = service.instance_variable_get(:@token_manager)
     assert_equal(token_manager.instance_variable_get(:@user_access_token), "new_token")
   end
+
+  def test_icp4d_disable_ssl
+    service = IBMCloudSdkCore::BaseService.new(
+      authentication_type: "icp4d",
+      icp4d_url: "https://the.sixth.one",
+      icp4d_access_token: "token",
+      url: "http://the.com"
+    )
+    stub_request(:get, "http://the.com/music")
+      .with(
+        headers: {
+          "Authorization" => "Basic Og==",
+          "Host" => "the.com"
+        }
+      ).to_return(status: 200, body: {}.to_json, headers: {})
+    assert_equal(service.instance_variable_get(:@icp4d_access_token), "token")
+    service.send :icp4d_token_manager, icp4d_access_token: "new_token", icp4d_url: "the.url"
+    token_manager = service.instance_variable_get(:@token_manager)
+    service.configure_http_client(disable_ssl_verification: true)
+    assert_equal(token_manager.instance_variable_get(:@disable_ssl_verification), true)
+    service_response = token_manager.send :request, method: "GET", url: "http://the.com/music", headers: {}
+    assert_equal({}, service_response)
+  end
 end

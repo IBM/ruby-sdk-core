@@ -243,6 +243,8 @@ module IBMCloudSdkCore
         ssl_context = OpenSSL::SSL::SSLContext.new
         ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
         @conn.default_options = { ssl_context: ssl_context }
+
+        @token_manager&.ssl_verification(true)
       end
       add_proxy(proxy) unless proxy.empty? || !proxy.dig(:address).is_a?(String) || !proxy.dig(:port).is_a?(Integer)
       add_timeout(timeout) unless timeout.empty? || (!timeout.key?(:per_operation) && !timeout.key?(:global))
