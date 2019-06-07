@@ -7,6 +7,7 @@ require("json")
 require_relative("./detailed_response.rb")
 require_relative("./api_exception.rb")
 require_relative("./iam_token_manager.rb")
+require_relative("./icp4d_token_manager.rb")
 require_relative("./version.rb")
 
 DEFAULT_CREDENTIALS_FILE_NAME = "ibm-credentials.env"
@@ -22,9 +23,12 @@ module IBMCloudSdkCore
     def initialize(vars)
       defaults = {
         vcap_services_name: nil,
+        use_vcap_services: true,
+        authentication_type: nil,
         username: nil,
         password: nil,
-        use_vcap_services: true,
+        icp4d_access_token: nil,
+        icp4d_url: nil,
         iam_apikey: nil,
         iam_access_token: nil,
         iam_url: nil,
@@ -34,22 +38,29 @@ module IBMCloudSdkCore
       }
       vars = defaults.merge(vars)
       @url = vars[:url]
-      @username = nil
-      @password = nil
-      @iam_apikey = nil
-      @token_manager = nil
-      @temp_headers = nil
+      @username = vars[:username]
+      @password = vars[:password]
       @icp_prefix = vars[:password]&.start_with?("icp-") || vars[:iam_apikey]&.start_with?("icp-") ? true : false
+      @icp4d_access_token = vars[:icp4d_access_token]
+      @icp4d_url = vars[:icp4d_url]
+      @iam_url = vars[:iam_url]
+      @iam_apikey = vars[:iam_apikey]
+      @token_manager = nil
+      @authentication_type = vars[:authentication_type].downcase unless vars[:authentication_type].nil?
+      @temp_headers = nil
       @disable_ssl_verification = false
       @display_name = vars[:display_name]
 
-      if (!vars[:iam_access_token].nil? || !vars[:iam_apikey].nil?) && !@icp_prefix
-        set_token_manager(iam_apikey: vars[:iam_apikey], iam_access_token: vars[:iam_access_token],
+      if @authentication_type == "iam" || ((!vars[:iam_access_token].nil? || !vars[:iam_apikey].nil?) && !@icp_prefix)
+        iam_token_manager(iam_apikey: vars[:iam_apikey], iam_access_token: vars[:iam_access_token],
                           iam_url: vars[:iam_url], iam_client_id: vars[:iam_client_id],
                           iam_client_secret: vars[:iam_client_secret])
       elsif !vars[:iam_apikey].nil? && @icp_prefix
         @username = "apikey"
         @password = vars[:iam_apikey]
+      elsif @authentication_type == "icp4d" || !vars[:icp4d_access_token].nil?
+        icp4d_token_manager(icp4d_access_token: vars[:icp4d_access_token], icp4d_url: vars[:icp4d_url],
+                            username: vars[:username], password: vars[:password])
       elsif !vars[:username].nil? && !vars[:password].nil?
         if vars[:username] == "apikey" && !@icp_prefix
           iam_apikey(iam_apikey: vars[:password])
@@ -73,6 +84,8 @@ module IBMCloudSdkCore
           @password = @vcap_service_credentials["password"] if @vcap_service_credentials.key?("password")
           @iam_apikey = @vcap_service_credentials["iam_apikey"] if @vcap_service_credentials.key?("iam_apikey")
           @iam_access_token = @vcap_service_credentials["iam_access_token"] if @vcap_service_credentials.key?("iam_access_token")
+          @icp4d_access_token = @vcap_service_credentials["icp4d_access_token"] if @vcap_service_credentials.key?("icp4d_access_token")
+          @icp4d_url = @vcap_service_credentials["icp4d_url"] if @vcap_service_credentials.key?("icp4d_url")
           @iam_url = @vcap_service_credentials["iam_url"] if @vcap_service_credentials.key?("iam_url")
           @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
         end
@@ -82,6 +95,9 @@ module IBMCloudSdkCore
       raise ArgumentError.new('The password shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your password') if check_bad_first_or_last_char(@password)
       raise ArgumentError.new('The url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your url') if check_bad_first_or_last_char(@url)
       raise ArgumentError.new('The apikey shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your apikey') if check_bad_first_or_last_char(@iam_apikey)
+      raise ArgumentError.new('The iam access token  shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your iam access token') if check_bad_first_or_last_char(@iam_access_token)
+      raise ArgumentError.new('The icp4d access token  shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your icp4d access token') if check_bad_first_or_last_char(@icp4d_access_token)
+      raise ArgumentError.new('The icp4d url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your icp4d url') if check_bad_first_or_last_char(@icp4d_url)
 
       @conn = HTTP::Client.new(
         headers: {}
@@ -248,7 +264,7 @@ module IBMCloudSdkCore
       return str.start_with?("{", "\"") || str.end_with?("}", "\"") unless str.nil?
     end
 
-    def set_token_manager(iam_apikey: nil, iam_access_token: nil, iam_url: nil,
+    def iam_token_manager(iam_apikey: nil, iam_access_token: nil, iam_url: nil,
                           iam_client_id: nil, iam_client_secret: nil)
       @iam_apikey = iam_apikey
       @iam_access_token = iam_access_token
@@ -258,6 +274,16 @@ module IBMCloudSdkCore
       @token_manager =
         IAMTokenManager.new(iam_apikey: iam_apikey, iam_access_token: iam_access_token,
                             iam_url: iam_url, iam_client_id: iam_client_id, iam_client_secret: iam_client_secret)
+    end
+
+    def icp4d_token_manager(icp4d_access_token: nil, icp4d_url: nil, username: nil, password: nil)
+      if !@token_manager.nil?
+        @token_manager.access_token(icp4d_access_token)
+      else
+        raise ArgumentError.new("The icp4d_url is mandatory for ICP4D.") if icp4d_url.nil? && icp4d_access_token.nil?
+
+        @token_manager = ICP4DTokenManager.new(url: icp4d_url, access_token: icp4d_access_token, username: username, password: password)
+      end
     end
 
     def add_timeout(timeout)

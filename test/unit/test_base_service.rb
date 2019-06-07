@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require("json")
+require("jwt")
 require_relative("./../test_helper.rb")
 require("webmock/minitest")
 
@@ -209,8 +210,21 @@ class BaseServiceTest < Minitest::Test
       "created" => "2016-07-11T16:39:01.774Z",
       "updated" => "2015-12-07T18:53:59.153Z"
     }
+    access_token_layout = {
+      "username" => "dummy",
+      "role" => "Admin",
+      "permissions" => %w[administrator manage_catalog],
+      "sub" => "admin",
+      "iss" => "sss",
+      "aud" => "sss",
+      "uid" => "sss",
+      "iat" => 3600,
+      "exp" => Time.now.to_i
+    }
+
+    access_token = JWT.encode(access_token_layout, "secret", "HS256", "kid": "230498151c214b788dd97f22b85410a5")
     token_response = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
+      "access_token" => access_token,
       "token_type" => "Bearer",
       "expires_in" => 3600,
       "expiration" => 1_524_167_011,
@@ -239,7 +253,7 @@ class BaseServiceTest < Minitest::Test
     stub_request(:get, "https://we.the.best/music")
       .with(
         headers: {
-          "Authorization" => "Bearer oAeisG8yqPY7sFR_x66Z15",
+          "Authorization" => "Bearer " + access_token,
           "Host" => "we.the.best"
         }
       ).to_return(status: 200, body: response.to_json, headers: headers)
@@ -252,14 +266,38 @@ class BaseServiceTest < Minitest::Test
     assert_equal(response, service_response.result)
   end
 
+  def test_for_icp4d
+    service = IBMCloudSdkCore::BaseService.new(
+      username: "hello",
+      password: "world",
+      icp4d_url: "service_url",
+      authentication_type: "icp4d"
+    )
+    refute_nil(service.token_manager)
+  end
+
   def test_dummy_request_username_apikey_cred_file
     response = {
       "text" => "I want financial advice today.",
       "created" => "2016-07-11T16:39:01.774Z",
       "updated" => "2015-12-07T18:53:59.153Z"
     }
+
+    access_token_layout = {
+      "username" => "dummy",
+      "role" => "Admin",
+      "permissions" => %w[administrator manage_catalog],
+      "sub" => "admin",
+      "iss" => "sss",
+      "aud" => "sss",
+      "uid" => "sss",
+      "iat" => 3600,
+      "exp" => Time.now.to_i
+    }
+
+    access_token = JWT.encode(access_token_layout, "secret", "HS256", "kid": "230498151c214b788dd97f22b85410a5")
     token_response = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
+      "access_token" => access_token,
       "token_type" => "Bearer",
       "expires_in" => 3600,
       "expiration" => 1_524_167_011,
@@ -288,7 +326,7 @@ class BaseServiceTest < Minitest::Test
     stub_request(:get, "https://we.the.best/music")
       .with(
         headers: {
-          "Authorization" => "Bearer oAeisG8yqPY7sFR_x66Z15",
+          "Authorization" => "Bearer " + access_token,
           "Host" => "we.the.best"
         }
       ).to_return(status: 200, body: response.to_json, headers: headers)
@@ -300,5 +338,17 @@ class BaseServiceTest < Minitest::Test
     )
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal(response, service_response.result)
+  end
+
+  def test_icp4d_access_token
+    service = IBMCloudSdkCore::BaseService.new(
+      authentication_type: "icp4d",
+      icp4d_url: "https://the.sixth.one",
+      icp4d_access_token: "token"
+    )
+    assert_equal(service.instance_variable_get(:@icp4d_access_token), "token")
+    service.send :icp4d_token_manager, icp4d_access_token: "new_token", icp4d_url: "the.url"
+    token_manager = service.instance_variable_get(:@token_manager)
+    assert_equal(token_manager.instance_variable_get(:@user_access_token), "new_token")
   end
 end

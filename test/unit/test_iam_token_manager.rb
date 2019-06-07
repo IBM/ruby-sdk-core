@@ -87,69 +87,19 @@ class IAMTokenManagerTest < Minitest::Test
     end
   end
 
-  def test_refresh_token
-    iam_url = "https://iam.cloud.ibm.com/identity/token"
-    response = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
-      "token_type" => "Bearer",
-      "expires_in" => 3600,
-      "expiration" => 1_524_167_011,
-      "refresh_token" => "jy4gl91BQ"
-    }
-    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
-      iam_apikey: "iam_apikey",
-      iam_access_token: "iam_access_token",
-      iam_url: iam_url
-    )
-    stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
-      .with(
-        body: { "grant_type" => "refresh_token", "refresh_token" => "" },
-        headers: {
-          "Accept" => "application/json",
-          "Authorization" => "Basic Yng6Yng=",
-          "Content-Type" => "application/x-www-form-urlencoded",
-          "Host" => "iam.cloud.ibm.com"
-        }
-      ).to_return(status: 200, body: response.to_json, headers: {})
-    token_response = token_manager.send(:refresh_token)
-    assert_equal(response, token_response)
-  end
-
   def test_is_token_expired
     token_manager = IBMCloudSdkCore::IAMTokenManager.new(
       iam_apikey: "iam_apikey",
       iam_access_token: "iam_access_token",
       iam_url: "iam_url"
     )
-    token_manager.token_info = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
-      "token_type" => "Bearer",
-      "expires_in" => 3600,
-      "expiration" => Time.now.to_i + 6000,
-      "refresh_token" => "jy4gl91BQ"
-    }
 
-    refute(token_manager.send(:token_expired?))
-    token_manager.token_info["expiration"] = Time.now.to_i - 3600
     assert(token_manager.send(:token_expired?))
-  end
-
-  def test_is_refresh_token_expired
-    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
-      iam_apikey: "iam_apikey",
-      iam_access_token: "iam_access_token",
-      iam_url: "iam_url"
-    )
-    token_manager.token_info = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
-      "token_type" => "Bearer",
-      "expires_in" => 3600,
-      "expiration" => Time.now.to_i,
-      "refresh_token" => "jy4gl91BQ"
-    }
-
-    refute(token_manager.send(:refresh_token_expired?))
-    token_manager.token_info["expiration"] = Time.now.to_i - (8 * 24 * 3600)
+    token_manager.instance_variable_set(:@time_to_live, 3600)
+    token_manager.instance_variable_set(:@expire_time, Time.now.to_i + 6000)
+    refute(token_manager.send(:token_expired?))
+    token_manager.instance_variable_set(:@time_to_live, 3600)
+    token_manager.instance_variable_set(:@expire_time, Time.now.to_i - 3600)
     assert(token_manager.send(:token_expired?))
   end
 
@@ -164,13 +114,28 @@ class IAMTokenManagerTest < Minitest::Test
     token = token_manager.token
     assert_equal(token_manager.user_access_token, token)
 
+    access_token_layout = {
+      "username" => "dummy",
+      "role" => "Admin",
+      "permissions" => %w[administrator manage_catalog],
+      "sub" => "admin",
+      "iss" => "sss",
+      "aud" => "sss",
+      "uid" => "sss",
+      "iat" => 3600,
+      "exp" => Time.now.to_i
+    }
+
+    access_token = JWT.encode(access_token_layout, "secret", "HS256", "kid": "230498151c214b788dd97f22b85410a5")
+
     response = {
-      "access_token" => "hellohello",
+      "access_token" => access_token,
       "token_type" => "Bearer",
       "expires_in" => 3600,
       "expiration" => 1_524_167_011,
       "refresh_token" => "jy4gl91BQ"
     }
+
     stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
       .with(
         body: { "apikey" => "iam_apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
@@ -181,36 +146,8 @@ class IAMTokenManagerTest < Minitest::Test
           "Host" => "iam.cloud.ibm.com"
         }
       ).to_return(status: 200, body: response.to_json, headers: {})
-    token_manager.user_access_token = ""
     token = token_manager.token
-    assert_equal("hellohello", token)
-
-    token_manager.token_info["expiration"] = Time.now.to_i - (20 * 24 * 3600)
-    token = token_manager.token
-    assert_equal("hellohello", token)
-
-    stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
-      .with(
-        headers: {
-          "Accept" => "application/json",
-          "Authorization" => "Basic Yng6Yng=",
-          "Content-Type" => "application/x-www-form-urlencoded",
-          "Host" => "iam.cloud.ibm.com"
-        }
-      ).to_return(status: 200, body: response.to_json, headers: {})
-    token_manager.token_info["expiration"] = Time.now.to_i - 4000
-    token = token_manager.token
-    assert_equal("hellohello", token)
-
-    token_manager.token_info = {
-      "access_token" => "dummy",
-      "token_type" => "Bearer",
-      "expires_in" => 3600,
-      "expiration" => Time.now.to_i + 3600,
-      "refresh_token" => "jy4gl91BQ"
-    }
-    token = token_manager.token
-    assert_equal("dummy", token)
+    assert_equal(token_manager.user_access_token, token)
   end
 
   def test_client_id_only
