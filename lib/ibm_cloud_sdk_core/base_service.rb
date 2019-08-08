@@ -45,36 +45,12 @@ module IBMCloudSdkCore
       @icp4d_url = vars[:icp4d_url]
       @iam_url = vars[:iam_url]
       @iam_apikey = vars[:iam_apikey]
+      @iam_access_token = vars[:iam_access_token]
       @token_manager = nil
       @authentication_type = vars[:authentication_type].downcase unless vars[:authentication_type].nil?
       @temp_headers = nil
       @disable_ssl_verification = false
       @display_name = vars[:display_name]
-
-      if @authentication_type == "iam" || ((!vars[:iam_access_token].nil? || !vars[:iam_apikey].nil?) && !@icp_prefix)
-        iam_token_manager(iam_apikey: vars[:iam_apikey], iam_access_token: vars[:iam_access_token],
-                          iam_url: vars[:iam_url], iam_client_id: vars[:iam_client_id],
-                          iam_client_secret: vars[:iam_client_secret])
-      elsif !vars[:iam_apikey].nil? && @icp_prefix
-        @username = "apikey"
-        @password = vars[:iam_apikey]
-      elsif @authentication_type == "icp4d" || !vars[:icp4d_access_token].nil?
-        icp4d_token_manager(icp4d_access_token: vars[:icp4d_access_token], icp4d_url: vars[:icp4d_url],
-                            username: vars[:username], password: vars[:password])
-      elsif !vars[:username].nil? && !vars[:password].nil?
-        if vars[:username] == "apikey" && !@icp_prefix
-          iam_apikey(iam_apikey: vars[:password])
-        else
-          @username = vars[:username]
-          @password = vars[:password]
-        end
-      end
-
-      if @display_name && !@username && !@iam_apikey
-        service_name = @display_name.sub(" ", "_").downcase
-        load_from_credential_file(service_name)
-        @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
-      end
 
       if vars[:use_vcap_services] && !@username && !@iam_apikey
         @vcap_service_credentials = load_from_vcap_services(service_name: vars[:vcap_services_name])
@@ -88,6 +64,31 @@ module IBMCloudSdkCore
           @icp4d_url = @vcap_service_credentials["icp4d_url"] if @vcap_service_credentials.key?("icp4d_url")
           @iam_url = @vcap_service_credentials["iam_url"] if @vcap_service_credentials.key?("iam_url")
           @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
+        end
+      end
+
+      if @display_name && !@username && !@iam_apikey
+        service_name = @display_name.sub(" ", "_").downcase
+        load_from_credential_file(service_name)
+        @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
+      end
+
+      if @authentication_type == "iam" || ((!@iam_access_token.nil? || !@iam_apikey.nil?) && !@icp_prefix)
+        iam_token_manager(iam_apikey: @iam_apikey, iam_access_token: @iam_access_token,
+                          iam_url: @iam_url, iam_client_id: @iam_client_id,
+                          iam_client_secret: @iam_client_secret)
+      elsif !@iam_apikey.nil? && @icp_prefix
+        @username = "apikey"
+        @password = vars[:iam_apikey]
+      elsif @authentication_type == "icp4d" || !@icp4d_access_token.nil?
+        icp4d_token_manager(icp4d_access_token: @icp4d_access_token, icp4d_url: @icp4d_url,
+                            username: @username, password: @password)
+      elsif !@username.nil? && !@password.nil?
+        if @username == "apikey" && !@icp_prefix
+          iam_apikey(iam_apikey: @password)
+        else
+          @username = @username
+          @password = @password
         end
       end
 
@@ -110,7 +111,7 @@ module IBMCloudSdkCore
 
       # Home directory
       if credential_file_path.nil?
-        file_path = ENV["HOME"] + DEFAULT_CREDENTIALS_FILE_NAME
+        file_path = ENV["HOME"] + "/" + DEFAULT_CREDENTIALS_FILE_NAME
         credential_file_path = file_path if File.exist?(file_path)
       end
 
