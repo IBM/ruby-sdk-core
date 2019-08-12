@@ -1,12 +1,10 @@
 language: ruby
 cache: bundler
-dist: trusty
-sudo: required
 
 rvm:
 - 2.3.7
-- 2.4.4
-- 2.5.1
+- 2.4.5
+- 2.5.3
 
 before_install:
   - sudo apt-get update
@@ -30,14 +28,14 @@ deploy:
     script: npx semantic-release
     on:
       branch: master
-      rvm: 2.5.1
+      rvm: 2.5.3
 
   - provider: rubygems
     api_key: $RUBYGEMS_API_KEY
     gem: ibm_cloud_sdk_core
     on:
       branch: master
-      rvm: 2.5.1
+      rvm: 2.5.3
 
 matrix:
   fast_finish: true
