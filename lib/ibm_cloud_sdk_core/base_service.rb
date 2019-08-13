@@ -68,7 +68,7 @@ module IBMCloudSdkCore
       end
 
       if @display_name && !@username && !@iam_apikey
-        service_name = @display_name.sub(" ", "_").downcase
+        service_name = @display_name.tr(" ", "_").downcase
         load_from_credential_file(service_name)
         @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
       end
@@ -256,7 +256,7 @@ module IBMCloudSdkCore
     def set_credential_based_on_type(service_name, key, value)
       return unless key.include?(service_name)
 
-      @iam_apikey = value if key.include?("iam_apikey")
+      @iam_apikey = value if key.include?("iam_apikey") || key.include?("apikey")
       @iam_url = value if key.include?("iam_url")
       @url = value if key.include?("url")
       @username = value if key.include?("username")

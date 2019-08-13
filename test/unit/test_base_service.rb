@@ -68,6 +68,16 @@ class BaseServiceTest < Minitest::Test
     ENV.delete("IBM_CREDENTIALS_FILE")
   end
 
+  def test_set_credentials_from_path_in_env_nlu
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
+    service = IBMCloudSdkCore::BaseService.new(display_name: "Natural Language Understanding")
+    assert_equal(service.url, "https://gateway.messi.com")
+    assert_equal(service.token_manager.instance_variable_get(:@iam_apikey), "salah")
+    refute_nil(service)
+    ENV.delete("IBM_CREDENTIALS_FILE")
+  end
+
   def test_vcap_services
     ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
     service = IBMCloudSdkCore::BaseService.new(vcap_services_name: "salah", use_vcap_services: true)
