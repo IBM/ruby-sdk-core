@@ -18,12 +18,14 @@ class IAMTokenManagerTest < Minitest::Test
 
     # Use default iam_url, client id/secret
     token_manager = IBMCloudSdkCore::IAMTokenManager.new(
-      iam_apikey: "iam_apikey",
-      iam_access_token: "iam_access_token"
+      apikey: "apikey",
+      url: "https://iam.cloud.ibm.com/identity/token",
+      client_id: "bx",
+      client_secret: "bx"
     )
     stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
       .with(
-        body: { "apikey" => "iam_apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
+        body: { "apikey" => "apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
         headers: {
           "Accept" => "application/json",
           "Authorization" => "Basic Yng6Yng=",
@@ -38,9 +40,8 @@ class IAMTokenManagerTest < Minitest::Test
   def test_request_token_fails
     iam_url = "https://iam.cloud.ibm.com/identity/token"
     token_manager = IBMCloudSdkCore::IAMTokenManager.new(
-      iam_apikey: "iam_apikey",
-      iam_access_token: "iam_access_token",
-      iam_url: iam_url
+      apikey: "apikey",
+      url: iam_url
     )
     response = {
       "code" => "500",
@@ -48,10 +49,10 @@ class IAMTokenManagerTest < Minitest::Test
     }
     stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
       .with(
-        body: { "apikey" => "iam_apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
+        body: { "apikey" => "apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
         headers: {
           "Accept" => "application/json",
-          "Authorization" => "Basic Yng6Yng=",
+          "Authorization" => "Basic Og==",
           "Content-Type" => "application/x-www-form-urlencoded",
           "Host" => "iam.cloud.ibm.com"
         }
@@ -63,8 +64,10 @@ class IAMTokenManagerTest < Minitest::Test
 
   def test_request_token_fails_catch_exception
     token_manager = IBMCloudSdkCore::IAMTokenManager.new(
-      iam_apikey: "iam_apikey",
-      iam_access_token: "iam_access_token"
+      apikey: "apikey",
+      url: "https://iam.cloud.ibm.com/identity/token",
+      client_id: "bx",
+      client_secret: "bx"
     )
     response = {
       "code" => "500",
@@ -72,7 +75,7 @@ class IAMTokenManagerTest < Minitest::Test
     }
     stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
       .with(
-        body: { "apikey" => "iam_apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
+        body: { "apikey" => "apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
         headers: {
           "Accept" => "application/json",
           "Authorization" => "Basic Yng6Yng=",
@@ -89,9 +92,10 @@ class IAMTokenManagerTest < Minitest::Test
 
   def test_is_token_expired
     token_manager = IBMCloudSdkCore::IAMTokenManager.new(
-      iam_apikey: "iam_apikey",
-      iam_access_token: "iam_access_token",
-      iam_url: "iam_url"
+      apikey: "apikey",
+      url: "https://url.com",
+      client_id: "bx",
+      client_secret: "bx"
     )
 
     assert(token_manager.send(:token_expired?))
@@ -106,13 +110,11 @@ class IAMTokenManagerTest < Minitest::Test
   def test_get_token
     iam_url = "https://iam.cloud.ibm.com/identity/token"
     token_manager = IBMCloudSdkCore::IAMTokenManager.new(
-      iam_apikey: "iam_apikey",
-      iam_url: iam_url
+      apikey: "apikey",
+      url: iam_url,
+      client_id: "bx",
+      client_secret: "bx"
     )
-    token_manager.user_access_token = "user_access_token"
-
-    token = token_manager.token
-    assert_equal(token_manager.user_access_token, token)
 
     access_token_layout = {
       "username" => "dummy",
@@ -138,7 +140,7 @@ class IAMTokenManagerTest < Minitest::Test
 
     stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
       .with(
-        body: { "apikey" => "iam_apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
+        body: { "apikey" => "apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
         headers: {
           "Accept" => "application/json",
           "Authorization" => "Basic Yng6Yng=",
@@ -147,13 +149,13 @@ class IAMTokenManagerTest < Minitest::Test
         }
       ).to_return(status: 200, body: response.to_json, headers: {})
     token = token_manager.token
-    assert_equal(token_manager.user_access_token, token)
+    assert_equal(access_token, token)
   end
 
   def test_client_id_only
     assert_raises do
       IBMCloudSdkCore::IAMTokenManager.new(
-        iam_apikey: "iam_apikey",
+        apikey: "apikey",
         iam_access_token: "iam_access_token",
         iam_client_id: "client_id"
       )
@@ -163,49 +165,11 @@ class IAMTokenManagerTest < Minitest::Test
   def test_client_secret_only
     assert_raises do
       IBMCloudSdkCore::IAMTokenManager.new(
-        iam_apikey: "iam_apikey",
+        apikey: "apikey",
         iam_access_token: "iam_access_token",
         iam_client_secret: "client_secret"
       )
     end
-  end
-
-  def test_request_token_nondefault_client_id_secret
-    response = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
-      "token_type" => "Bearer",
-      "expires_in" => 3600,
-      "expiration" => 1_524_167_011,
-      "refresh_token" => "jy4gl91BQ"
-    }
-
-    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
-      iam_apikey: "iam_apikey",
-      iam_client_id: "foo",
-      iam_client_secret: "bar"
-    )
-    stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
-      .with(basic_auth: %w[foo bar]).to_return(status: 200, body: response.to_json, headers: {})
-    token_response = token_manager.send(:request_token)
-    assert_equal(response, token_response)
-  end
-
-  def test_request_token_default_client_id_secret
-    response = {
-      "access_token" => "oAeisG8yqPY7sFR_x66Z15",
-      "token_type" => "Bearer",
-      "expires_in" => 3600,
-      "expiration" => 1_524_167_011,
-      "refresh_token" => "jy4gl91BQ"
-    }
-
-    token_manager = IBMCloudSdkCore::IAMTokenManager.new(
-      iam_apikey: "iam_apikey"
-    )
-    stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
-      .with(basic_auth: %w[bx bx]).to_return(status: 200, body: response.to_json, headers: {})
-    token_response = token_manager.send(:request_token)
-    assert_equal(response, token_response)
   end
 
   def test_dont_leak_constants

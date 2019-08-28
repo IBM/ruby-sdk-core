@@ -5,8 +5,8 @@ require("webmock/minitest")
 
 WebMock.disable_net_connect!(allow_localhost: true)
 
-# Unit tests for the ICP4D Token Manager
-class ICP4DTokenManagerTest < Minitest::Test
+# Unit tests for the CP4D Token Manager
+class CP4DTokenManagerTest < Minitest::Test
   def test_request_token
     response = {
       "access_token" => "oAeisG8yqPY7sFR_x66Z15",
@@ -16,7 +16,7 @@ class ICP4DTokenManagerTest < Minitest::Test
       "refresh_token" => "jy4gl91BQ"
     }
 
-    token_manager = IBMCloudSdkCore::ICP4DTokenManager.new(
+    token_manager = IBMCloudSdkCore::CP4DTokenManager.new(
       url: "https://the.sixth.one",
       username: "you",
       password: "me"
@@ -30,12 +30,10 @@ class ICP4DTokenManagerTest < Minitest::Test
       ).to_return(status: 200, body: response.to_json, headers: {})
     token_response = token_manager.send(:request_token)
     assert_equal(response, token_response)
-    token_manager.access_token("token")
-    assert_equal(token_manager.instance_variable_get(:@user_access_token), "token")
   end
 
   def test_request_token_fails
-    token_manager = IBMCloudSdkCore::ICP4DTokenManager.new(
+    token_manager = IBMCloudSdkCore::CP4DTokenManager.new(
       url: "https://the.sixth.one",
       username: "you",
       password: "me"
