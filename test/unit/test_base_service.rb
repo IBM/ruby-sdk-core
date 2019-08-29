@@ -74,6 +74,16 @@ class BaseServiceTest < Minitest::Test
     ENV.delete("IBM_CREDENTIALS_FILE")
   end
 
+  def test_set_credentials_from_path_in_env_bearer_token
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "leo_messi")
+    service = IBMCloudSdkCore::BaseService.new(display_name: "Leo Messi", url: "some.url", authenticator: authenticator)
+    assert_equal(authenticator.authentication_type, "bearerToken")
+    refute_nil(service)
+    ENV.delete("IBM_CREDENTIALS_FILE")
+  end
+
   def test_vcap_services
     ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")

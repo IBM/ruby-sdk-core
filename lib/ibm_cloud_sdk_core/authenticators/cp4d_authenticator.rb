@@ -8,8 +8,6 @@ require_relative("../utils.rb")
 module IBMCloudSdkCore
   # Basic Authenticator
   class CloudPakForDataAuthenticator < Authenticator
-    @authentication_type = "cp4d"
-
     attr_accessor :authentication_type
     def initialize(vars)
       defaults = {
@@ -19,11 +17,11 @@ module IBMCloudSdkCore
         disable_ssl_verification: false
       }
       vars = defaults.merge(vars)
-
       @username = vars[:username]
       @password = vars[:password]
       @url = vars[:url]
       @disable_ssl_verification = vars[:disable_ssl_verification]
+      @authentication_type = AUTH_TYPE_CP4D
 
       validate
       @token_manager = CP4DTokenManager.new(

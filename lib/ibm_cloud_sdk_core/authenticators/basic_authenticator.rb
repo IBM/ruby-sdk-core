@@ -7,8 +7,6 @@ require_relative("../utils.rb")
 module IBMCloudSdkCore
   # Basic Authenticator
   class BasicAuthenticator < Authenticator
-    @authentication_type = "basic"
-
     attr_accessor :username, :password
     def initialize(vars)
       defaults = {
@@ -18,6 +16,7 @@ module IBMCloudSdkCore
       vars = defaults.merge(vars)
       @username = vars[:username]
       @password = vars[:password]
+      @authentication_type = AUTH_TYPE_BASIC
       validate
     end
 

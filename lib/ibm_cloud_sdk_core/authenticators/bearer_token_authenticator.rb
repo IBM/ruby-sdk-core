@@ -7,11 +7,14 @@ require_relative("../utils.rb")
 module IBMCloudSdkCore
   # Basic Authenticator
   class BearerTokenAuthenticator < Authenticator
-    @authentication_type = "bearerToken"
-
     attr_accessor :authentication_type
-    def initialize(bearer_token: nil)
-      @bearer_token = bearer_token
+    def initialize(vars)
+      defaults = {
+        bearer_token: nil
+      }
+      vars = defaults.merge(vars)
+      @bearer_token = vars[:bearer_token]
+      @authentication_type = AUTH_TYPE_BEARER_TOKEN
       validate
     end
 

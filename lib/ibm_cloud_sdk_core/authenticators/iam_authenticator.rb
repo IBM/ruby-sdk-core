@@ -8,7 +8,6 @@ require_relative("../utils.rb")
 module IBMCloudSdkCore
   # Basic Authenticator
   class IamAuthenticator < Authenticator
-    @authentication_type = "basic"
     DEFAULT_CLIENT_ID = "bx"
     DEFAULT_CLIENT_SECRET = "bx"
 
@@ -26,6 +25,7 @@ module IBMCloudSdkCore
       @client_id = vars[:client_id]
       @client_secret = vars[:client_secret]
       @disable_ssl_verification = vars[:disable_ssl_verification]
+      @authentication_type = AUTH_TYPE_IAM
       validate
       @token_manager = iam_token_manager(
         apikey: @apikey,
