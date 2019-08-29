@@ -23,7 +23,6 @@ module IBMCloudSdkCore
     # Checks if all the inputs needed are present
     def validate
       raise ArgumentError.new("The bearer token shouldn\'t be None.") if @bearer_token.nil?
-      raise ArgumentError.new('The bearer token shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your username') if check_bad_first_or_last_char(@username)
     end
   end
 end

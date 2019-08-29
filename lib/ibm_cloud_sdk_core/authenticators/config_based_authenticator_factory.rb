@@ -22,10 +22,10 @@ module IBMCloudSdkCore
     def construct_authenticator(config)
       auth_type = config[:auth_type] || "iam"
       return BasicAuthenticator.new(config) if auth_type == "basic"
-      return BearerTokenAuthenticator.new(config) if auth_type == "bearer_token"
+      return BearerTokenAuthenticator.new(config) if auth_type == "bearerToken"
       return CloudPakForDataAuthenticator.new(config) if auth_type == "cp4d"
       return IamAuthenticator.new(config) if auth_type == "iam"
-      return NoAuthAUthenticator.new if auth_type == "no_auth"
+      return NoAuthAUthenticator.new if auth_type == "noAuth"
     end
   end
 end

@@ -43,8 +43,7 @@ module IBMCloudSdkCore
     def validate
       # Adds the Authorization header, if possible
       raise ArgumentError.new("The apikey shouldn\'t be None.") if @apikey.nil?
-      raise ArgumentError.new('The apikey shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your username') if check_bad_first_or_last_char(@apikey)
-      raise ArgumentError.new('The password shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your username') if check_bad_first_or_last_char(@password)
+      raise ArgumentError.new('The apikey shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your apikey') if check_bad_first_or_last_char(@apikey)
 
       # Both the client id and secret should be provided or neither should be provided.
       if !iam_client_id.nil? && !iam_client_secret.nil?
