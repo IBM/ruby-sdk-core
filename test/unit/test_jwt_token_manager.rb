@@ -18,7 +18,7 @@ class JWTTokenManagerTest < Minitest::Test
     }
 
     token_manager = IBMCloudSdkCore::JWTTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
+      CP4D_url: "https://the.sixth.one",
       username: "you",
       password: "me"
     )
@@ -31,13 +31,11 @@ class JWTTokenManagerTest < Minitest::Test
       ).to_return(status: 200, body: response.to_json, headers: {})
     token_response = token_manager.send(:request, method: "get", url: "https://the.sixth.one")
     assert_equal(response, token_response)
-    token_manager.access_token("token")
-    assert_equal(token_manager.instance_variable_get(:@user_access_token), "token")
   end
 
   def test_request_token_fails
     token_manager = IBMCloudSdkCore::JWTTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
+      url: "https://the.sixth.one",
       username: "you",
       password: "me"
     )
@@ -57,17 +55,6 @@ class JWTTokenManagerTest < Minitest::Test
     rescue IBMCloudSdkCore::ApiException => e
       assert(e.to_s.instance_of?(String))
     end
-  end
-
-  def test_request_token_exists
-    token_manager = IBMCloudSdkCore::JWTTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
-      username: "you",
-      password: "me",
-      access_token: "token"
-    )
-    token_response = token_manager.send(:token)
-    assert_equal("token", token_response)
   end
 
   def test_request_token_not_expired
@@ -93,7 +80,7 @@ class JWTTokenManagerTest < Minitest::Test
     }
 
     token_manager = IBMCloudSdkCore::JWTTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
+      CP4D_url: "https://the.sixth.one",
       username: "you",
       password: "me",
       token_name: "accessToken"

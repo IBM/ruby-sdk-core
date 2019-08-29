@@ -4,7 +4,7 @@ require("http")
 require("json")
 require("jwt")
 require("rbconfig")
-require_relative("./version.rb")
+require_relative("./../version.rb")
 
 module IBMCloudSdkCore
   # Class to manage JWT Token Authentication
@@ -19,7 +19,6 @@ module IBMCloudSdkCore
 
       @url = vars[:url]
       @token_info = vars[:token_info]
-      @user_access_token = vars[:access_token]
       @token_name = vars[:token_name]
       @time_to_live = nil
       @expire_time = nil
@@ -27,9 +26,7 @@ module IBMCloudSdkCore
     end
 
     def token
-      if !@user_access_token.nil?
-        @user_access_token
-      elsif @token_info.nil? || token_expired?
+      if @token_info.nil? || token_expired?
         token_info = request_token
         save_token_info(token_info: token_info)
         @token_info[@token_name]
@@ -38,8 +35,8 @@ module IBMCloudSdkCore
       end
     end
 
-    def access_token(access_token)
-      @user_access_token = access_token
+    def access_token
+      @token_info[@token_name]
     end
 
     def ssl_verification(disable_ssl_verification)
@@ -94,7 +91,7 @@ module IBMCloudSdkCore
       end
       return JSON.parse(response.body.to_s) if (200..299).cover?(response.code)
 
-      require_relative("./api_exception.rb")
+      require_relative("./../api_exception.rb")
       raise ApiException.new(response: response)
     end
   end
