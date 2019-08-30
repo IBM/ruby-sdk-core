@@ -179,10 +179,38 @@ class BaseServiceTest < Minitest::Test
   end
 
   def test_for_cp4d_authenticator
+    token_layout = {
+      "username": "dummy",
+      "role": "Admin",
+      "permissions": %w[administrator manage_catalog],
+      "sub": "admin",
+      "iss": "sss",
+      "aud": "sss",
+      "uid": "sss",
+      "iat": Time.now.to_i + 3600,
+      "exp": Time.now.to_i
+    }
+    token = JWT.encode token_layout, "secret", "HS256"
+    response = {
+      "accessToken" => token,
+      "token_type" => "Bearer",
+      "expires_in" => 3600,
+      "expiration" => 1_524_167_011,
+      "refresh_token" => "jy4gl91BQ"
+    }
+    stub_request(:get, "https://hello.world/v1/preauth/validateAuth")
+      .with(
+        headers: {
+          "Authorization" => "Basic aGVsbG86d29ybGQ=",
+          "Connection" => "close",
+          "Host" => "hello.world"
+        }
+      )
+      .to_return(status: 200, body: response.to_json, headers: {})
     authenticator = IBMCloudSdkCore::CloudPakForDataAuthenticator.new(
       username: "hello",
       password: "world",
-      url: "hello.world"
+      url: "https://hello.world"
     )
     refute_nil(authenticator)
   end

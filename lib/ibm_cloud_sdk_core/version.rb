@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module IBMCloudSdkCore
-  VERSION = "0.3.3"
+  VERSION = "1.0.0.rc2"
 end

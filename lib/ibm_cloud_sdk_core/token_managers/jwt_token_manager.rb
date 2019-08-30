@@ -35,10 +35,6 @@ module IBMCloudSdkCore
       end
     end
 
-    def access_token
-      @token_info[@token_name]
-    end
-
     def ssl_verification(disable_ssl_verification)
       @disable_ssl_verification = disable_ssl_verification
     end

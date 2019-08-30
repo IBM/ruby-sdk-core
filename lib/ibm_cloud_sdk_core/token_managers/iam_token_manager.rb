@@ -16,7 +16,7 @@ module IBMCloudSdkCore
     REQUEST_TOKEN_RESPONSE_TYPE = "cloud_iam"
     TOKEN_NAME = "access_token"
 
-    attr_accessor :token_info, :user_access_token
+    attr_accessor :token_info, :token_name
     def initialize(
       apikey: nil,
       url: nil,
@@ -25,11 +25,16 @@ module IBMCloudSdkCore
       disable_ssl_verification: nil
     )
       @apikey = apikey
-      @url = url.nil? ? DEFAULT_IAM_URL : url
+      url = DEFAULT_IAM_URL if url.nil?
       @client_id = client_id
       @client_secret = client_secret
       @disable_ssl_verification = disable_ssl_verification
       super(url: url, token_name: TOKEN_NAME)
+      token
+    end
+
+    def access_token
+      @token_info[TOKEN_NAME]
     end
 
     private
