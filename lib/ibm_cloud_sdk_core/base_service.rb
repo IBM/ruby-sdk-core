@@ -9,6 +9,12 @@ require_relative("./detailed_response.rb")
 require_relative("./api_exception.rb")
 require_relative("./utils.rb")
 require_relative("./authenticators/authenticator")
+require_relative("./authenticators/basic_authenticator")
+require_relative("./authenticators/bearer_token_authenticator")
+require_relative("./authenticators/config_based_authenticator_factory")
+require_relative("./authenticators/iam_authenticator")
+require_relative("./authenticators/cp4d_authenticator")
+require_relative("./authenticators/no_auth_authenticator")
 
 NORMALIZER = lambda do |uri| # Custom URI normalizer when using HTTP Client
   HTTP::URI.parse uri
@@ -37,6 +43,7 @@ module IBMCloudSdkCore
         @url = config[:url] unless config.nil?
       end
 
+      @temp_headers = {}
       @conn = HTTP::Client.new(
         headers: {}
       ).use normalize_uri: { normalizer: NORMALIZER }

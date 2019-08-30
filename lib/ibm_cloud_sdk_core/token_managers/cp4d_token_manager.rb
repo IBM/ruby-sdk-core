@@ -18,6 +18,11 @@ module IBMCloudSdkCore
       @password = password
       @disable_ssl_verification = disable_ssl_verification
       super(url: url, token_name: TOKEN_NAME)
+      token
+    end
+
+    def access_token
+      @token_info[TOKEN_NAME]
     end
 
     def request_token

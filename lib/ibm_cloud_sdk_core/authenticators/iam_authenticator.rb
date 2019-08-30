@@ -26,8 +26,9 @@ module IBMCloudSdkCore
       @client_secret = vars[:client_secret]
       @disable_ssl_verification = vars[:disable_ssl_verification]
       @authentication_type = AUTH_TYPE_IAM
+
       validate
-      @token_manager = iam_token_manager(
+      @token_manager = IAMTokenManager.new(
         apikey: @apikey,
         url: @url,
         client_id: @client_id,
@@ -36,8 +37,9 @@ module IBMCloudSdkCore
       )
     end
 
-    def authenticate(connector)
-      connector.default_options.headers.add("Authorization", "Bearer #{@token_manager.access_token}")
+    def authenticate(headers)
+      headers["Authorization"] = "Bearer #{@token_manager.access_token}"
+      headers
     end
 
     def validate
@@ -46,14 +48,11 @@ module IBMCloudSdkCore
       raise ArgumentError.new('The apikey shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your apikey') if check_bad_first_or_last_char(@apikey)
 
       # Both the client id and secret should be provided or neither should be provided.
-      if !iam_client_id.nil? && !iam_client_secret.nil?
-        @iam_client_id = iam_client_id
-        @iam_client_secret = iam_client_secret
-      elsif iam_client_id.nil? && iam_client_secret.nil?
-        @iam_client_id = DEFAULT_CLIENT_ID
-        @iam_client_secret = DEFAULT_CLIENT_SECRET
-      else
-        raise ArgumentError.new("Only one of 'iam_client_id' or 'iam_client_secret' were specified, but both parameters should be specified together.")
+      if @client_id.nil? && @client_secret.nil?
+        @client_id = DEFAULT_CLIENT_ID
+        @client_secret = DEFAULT_CLIENT_SECRET
+      elsif @client_id.nil? || client_secret.nil?
+        raise ArgumentError.new("Only one of 'client_id' or 'client_secret' were specified, but both parameters should be specified together.")
       end
     end
   end

@@ -25,9 +25,9 @@ module IBMCloudSdkCore
 
       validate
       @token_manager = CP4DTokenManager.new(
+        url: @url,
         username: @username,
         password: @password,
-        url: @url,
         disable_ssl_verification: @disable_ssl_verification
       )
     end

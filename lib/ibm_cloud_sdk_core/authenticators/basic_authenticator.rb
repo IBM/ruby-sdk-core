@@ -7,7 +7,7 @@ require_relative("../utils.rb")
 module IBMCloudSdkCore
   # Basic Authenticator
   class BasicAuthenticator < Authenticator
-    attr_accessor :username, :password
+    attr_accessor :username, :password, :authentication_type
     def initialize(vars)
       defaults = {
         username: nil,
@@ -21,8 +21,10 @@ module IBMCloudSdkCore
     end
 
     # Adds the Authorization header, if possible
-    def authenticate(req)
-      req.basic_auth(user: @username, pass: @password)
+    def authenticate(headers)
+      base64_authentication = Base64.strict_encode64("#{@username}:#{@password}")
+      headers["Authorization"] = "Basic #{base64_authentication}"
+      headers
     end
 
     # Checks if all the inputs needed are present
