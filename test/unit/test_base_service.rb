@@ -60,7 +60,7 @@ class BaseServiceTest < Minitest::Test
     file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
     ENV["IBM_CREDENTIALS_FILE"] = file_path
     service = IBMCloudSdkCore::BaseService.new(display_name: "Visual Recognition")
-    assert_equal(service.instance_variable_get(:@url), "https://gateway.ronaldo.com")
+    assert_equal(service.service_url, "https://gateway.ronaldo.com")
     refute_nil(service)
     ENV.delete("IBM_CREDENTIALS_FILE")
   end
@@ -69,7 +69,7 @@ class BaseServiceTest < Minitest::Test
     file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
     ENV["IBM_CREDENTIALS_FILE"] = file_path
     service = IBMCloudSdkCore::BaseService.new(display_name: "Natural Language Understanding")
-    assert_equal(service.instance_variable_get(:@url), "https://gateway.messi.com")
+    assert_equal(service.service_url, "https://gateway.messi.com")
     refute_nil(service)
     ENV.delete("IBM_CREDENTIALS_FILE")
   end
@@ -101,7 +101,7 @@ class BaseServiceTest < Minitest::Test
         }
       ).to_return(status: 200, body: "", headers: {})
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "Salah")
-    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, url: "https://we.the.best")
+    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, service_url: "https://we.the.best")
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal("", service_response.result)
   end
@@ -111,7 +111,7 @@ class BaseServiceTest < Minitest::Test
       display_name: "Assistant",
       apikey: "apikey",
       iam_access_token: "token",
-      url: "https://gateway.watsonplatform.net/"
+      service_url: "https://gateway.watsonplatform.net/"
     )
     form_data = {}
     file = File.open(Dir.getwd + "/resources/cnc_test.pdf")
@@ -144,7 +144,7 @@ class BaseServiceTest < Minitest::Test
         }
       ).to_return(status: 500, body: response.to_json, headers: {})
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "Salah")
-    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, url: "https://we.the.best")
+    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, service_url: "https://we.the.best")
     assert_raises do
       service.request(method: "GET", url: "/music", headers: {})
     end
@@ -172,7 +172,7 @@ class BaseServiceTest < Minitest::Test
     service = IBMCloudSdkCore::BaseService.new(
       display_name: "Assistant",
       authenticator: authenticator,
-      url: "https://we.the.best"
+      service_url: "https://we.the.best"
     )
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal(response, service_response.result)
