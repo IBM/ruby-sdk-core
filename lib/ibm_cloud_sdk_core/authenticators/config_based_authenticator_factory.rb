@@ -26,11 +26,11 @@ module IBMCloudSdkCore
       else
         auth_type = config[:auth_type]
       end
-      return BasicAuthenticator.new(config) if auth_type == AUTH_TYPE_BASIC
-      return BearerTokenAuthenticator.new(config) if auth_type == AUTH_TYPE_BEARER_TOKEN
-      return CloudPakForDataAuthenticator.new(config) if auth_type == AUTH_TYPE_CP4D
-      return IamAuthenticator.new(config) if auth_type == AUTH_TYPE_IAM
-      return NoAuthAUthenticator.new if auth_type == AUTH_TYPE_NO_AUTH
+      return BasicAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_BASIC).zero?
+      return BearerTokenAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_BEARER_TOKEN).zero?
+      return CloudPakForDataAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_CP4D).zero?
+      return IamAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_IAM).zero?
+      return NoAuthAUthenticator.new if auth_type.casecmp(AUTH_TYPE_NO_AUTH).zero?
     end
   end
 end
