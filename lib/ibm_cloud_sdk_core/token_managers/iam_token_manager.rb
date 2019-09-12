@@ -16,7 +16,7 @@ module IBMCloudSdkCore
     REQUEST_TOKEN_RESPONSE_TYPE = "cloud_iam"
     TOKEN_NAME = "access_token"
 
-    attr_accessor :token_info, :token_name
+    attr_accessor :token_info, :token_name, :client_id, :client_secret
     def initialize(
       apikey: nil,
       url: nil,

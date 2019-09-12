@@ -37,6 +37,7 @@ module IBMCloudSdkCore
       @disable_ssl_verification = vars[:disable_ssl_verification]
       @display_name = vars[:display_name]
       @service_name = @display_name.tr(" ", "_").downcase unless @display_name.nil?
+      @authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: @service_name) if @authenticator.nil?
 
       if @service_name && !@service_url
         config = get_service_properties(@service_name)
@@ -74,7 +75,7 @@ module IBMCloudSdkCore
 
       conn = @conn
 
-      @temp_headers = @authenticator.authenticate(@temp_headers)
+      @authenticator.authenticate(@temp_headers)
       args[:headers] = args[:headers].merge(@temp_headers) unless @temp_headers.nil?
       @temp_headers = nil unless @temp_headers.nil?
 

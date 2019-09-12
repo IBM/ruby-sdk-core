@@ -60,7 +60,6 @@ class IAMTokenManagerTest < Minitest::Test
         body: { "apikey" => "apikey", "grant_type" => "urn:ibm:params:oauth:grant-type:apikey", "response_type" => "cloud_iam" },
         headers: {
           "Accept" => "application/json",
-          "Authorization" => "Basic Og==",
           "Content-Type" => "application/x-www-form-urlencoded",
           "Host" => "iam.cloud.ibm.com"
         }

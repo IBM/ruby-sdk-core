@@ -35,10 +35,6 @@ module IBMCloudSdkCore
       end
     end
 
-    def ssl_verification(disable_ssl_verification)
-      @disable_ssl_verification = disable_ssl_verification
-    end
-
     private
 
     # Check if currently stored token is expired.
@@ -65,10 +61,10 @@ module IBMCloudSdkCore
     end
 
     def request(method:, url:, headers: nil, params: nil, data: nil, username: nil, password: nil)
-      if @disable_ssl_verification
-        ssl_context = OpenSSL::SSL::SSLContext.new
-        ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
-        response = HTTP.basic_auth(user: username, pass: password).request(
+      ssl_context = OpenSSL::SSL::SSLContext.new
+      ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE if @disable_ssl_verification
+      if username.nil? && password.nil?
+        response = HTTP.request(
           method,
           url,
           body: data,
@@ -82,7 +78,8 @@ module IBMCloudSdkCore
           url,
           body: data,
           headers: headers,
-          params: params
+          params: params,
+          ssl_context: ssl_context
         )
       end
       return JSON.parse(response.body.to_s) if (200..299).cover?(response.code)
