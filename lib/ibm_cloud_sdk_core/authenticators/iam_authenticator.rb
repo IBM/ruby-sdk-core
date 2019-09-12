@@ -51,7 +51,7 @@ module IBMCloudSdkCore
       if @client_id.nil? && @client_secret.nil?
         @client_id = DEFAULT_CLIENT_ID
         @client_secret = DEFAULT_CLIENT_SECRET
-      elsif @client_id.nil? || client_secret.nil?
+      elsif @client_id.nil? || @client_secret.nil?
         raise ArgumentError.new("Only one of 'client_id' or 'client_secret' were specified, but both parameters should be specified together.")
       end
     end

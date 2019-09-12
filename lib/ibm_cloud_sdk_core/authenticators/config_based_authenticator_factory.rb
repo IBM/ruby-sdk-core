@@ -30,7 +30,7 @@ module IBMCloudSdkCore
       return BearerTokenAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_BEARER_TOKEN).zero?
       return CloudPakForDataAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_CP4D).zero?
       return IamAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_IAM).zero?
-      return NoAuthAUthenticator.new if auth_type.casecmp(AUTH_TYPE_NO_AUTH).zero?
+      return NoAuthAuthenticator.new if auth_type.casecmp(AUTH_TYPE_NO_AUTH).zero?
     end
   end
 end

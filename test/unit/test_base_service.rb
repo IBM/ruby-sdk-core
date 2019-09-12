@@ -21,10 +21,10 @@ class BaseServiceTest < Minitest::Test
   end
 
   def test_wrong_apikey
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
     assert_raises do
-      IBMCloudSdkCore::IamAuthenticator.new(
-        apikey: "{apikey"
-      )
+      IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "wrong")
     end
   end
 
@@ -35,6 +35,23 @@ class BaseServiceTest < Minitest::Test
         url: "url}"
       )
     end
+  end
+
+  def test_iam_client_id_only
+    assert_raises ArgumentError do
+      IBMCloudSdkCore::IamAuthenticator.new(apikey: "apikey", client_id: "Salah")
+    end
+  end
+
+  def test_no_auth_authenticator
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "red_sox")
+    service = IBMCloudSdkCore::BaseService.new(
+      display_name: "Assistant",
+      authenticator: authenticator
+    )
+    refute_nil(service)
   end
 
   def test_correct_creds_and_headers
@@ -100,17 +117,17 @@ class BaseServiceTest < Minitest::Test
           "Host" => "we.the.best"
         }
       ).to_return(status: 200, body: "", headers: {})
-    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "Salah")
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
     service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, service_url: "https://we.the.best")
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal("", service_response.result)
   end
 
   def test_dummy_request_form_data
+    authenticator = IBMCloudSdkCore::BearerTokenAuthenticator.new(bearer_token: "token")
     service = IBMCloudSdkCore::BaseService.new(
       display_name: "Assistant",
-      apikey: "apikey",
-      iam_access_token: "token",
+      authenticator: authenticator,
       service_url: "https://gateway.watsonplatform.net/"
     )
     form_data = {}
@@ -143,9 +160,9 @@ class BaseServiceTest < Minitest::Test
           "Host" => "we.the.best"
         }
       ).to_return(status: 500, body: response.to_json, headers: {})
-    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "Salah")
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
     service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, service_url: "https://we.the.best")
-    assert_raises do
+    assert_raises IBMCloudSdkCore::ApiException do
       service.request(method: "GET", url: "/music", headers: {})
     end
   end
