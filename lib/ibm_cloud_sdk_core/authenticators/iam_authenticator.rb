@@ -8,10 +8,7 @@ require_relative("../utils.rb")
 module IBMCloudSdkCore
   # Basic Authenticator
   class IamAuthenticator < Authenticator
-    DEFAULT_CLIENT_ID = "bx"
-    DEFAULT_CLIENT_SECRET = "bx"
-
-    attr_accessor :authentication_type
+    attr_accessor :authentication_type, :disable_ssl_verification, :client_id, :client_secret
     def initialize(vars)
       defaults = {
         url: nil,
@@ -39,7 +36,6 @@ module IBMCloudSdkCore
 
     def authenticate(headers)
       headers["Authorization"] = "Bearer #{@token_manager.access_token}"
-      headers
     end
 
     def validate
@@ -48,12 +44,7 @@ module IBMCloudSdkCore
       raise ArgumentError.new('The apikey shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your apikey') if check_bad_first_or_last_char(@apikey)
 
       # Both the client id and secret should be provided or neither should be provided.
-      if @client_id.nil? && @client_secret.nil?
-        @client_id = DEFAULT_CLIENT_ID
-        @client_secret = DEFAULT_CLIENT_SECRET
-      elsif @client_id.nil? || client_secret.nil?
-        raise ArgumentError.new("Only one of 'client_id' or 'client_secret' were specified, but both parameters should be specified together.")
-      end
+      raise ArgumentError.new("Only one of 'client_id' or 'client_secret' were specified, but both parameters should be specified together.") if (@client_id.nil? && !@client_secret.nil?) || (!@client_id.nil? && @client_secret.nil?)
     end
   end
 end

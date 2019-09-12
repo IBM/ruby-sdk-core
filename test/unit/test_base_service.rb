@@ -21,10 +21,10 @@ class BaseServiceTest < Minitest::Test
   end
 
   def test_wrong_apikey
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
     assert_raises do
-      IBMCloudSdkCore::IamAuthenticator.new(
-        apikey: "{apikey"
-      )
+      IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "wrong")
     end
   end
 
@@ -35,6 +35,23 @@ class BaseServiceTest < Minitest::Test
         url: "url}"
       )
     end
+  end
+
+  def test_iam_client_id_only
+    assert_raises ArgumentError do
+      IBMCloudSdkCore::IamAuthenticator.new(apikey: "apikey", client_id: "Salah")
+    end
+  end
+
+  def test_no_auth_authenticator
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "red_sox")
+    service = IBMCloudSdkCore::BaseService.new(
+      display_name: "Assistant",
+      authenticator: authenticator
+    )
+    refute_nil(service)
   end
 
   def test_correct_creds_and_headers
@@ -56,21 +73,11 @@ class BaseServiceTest < Minitest::Test
     refute_nil(service)
   end
 
-  def test_set_credentials_from_path_in_env
-    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
-    ENV["IBM_CREDENTIALS_FILE"] = file_path
-    service = IBMCloudSdkCore::BaseService.new(display_name: "Visual Recognition")
-    assert_equal(service.instance_variable_get(:@url), "https://gateway.ronaldo.com")
-    refute_nil(service)
-    ENV.delete("IBM_CREDENTIALS_FILE")
-  end
-
   def test_set_credentials_from_path_in_env_nlu
     file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
     ENV["IBM_CREDENTIALS_FILE"] = file_path
-    service = IBMCloudSdkCore::BaseService.new(display_name: "Natural Language Understanding")
-    assert_equal(service.instance_variable_get(:@url), "https://gateway.messi.com")
-    refute_nil(service)
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "natural_language_understanding")
+    assert_equal(authenticator.authentication_type, "bearerToken")
     ENV.delete("IBM_CREDENTIALS_FILE")
   end
 
@@ -81,7 +88,6 @@ class BaseServiceTest < Minitest::Test
     service = IBMCloudSdkCore::BaseService.new(display_name: "Leo Messi", url: "some.url", authenticator: authenticator)
     assert_equal(authenticator.authentication_type, "bearerToken")
     refute_nil(service)
-    ENV.delete("IBM_CREDENTIALS_FILE")
   end
 
   def test_vcap_services
@@ -100,18 +106,18 @@ class BaseServiceTest < Minitest::Test
           "Host" => "we.the.best"
         }
       ).to_return(status: 200, body: "", headers: {})
-    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "Salah")
-    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, url: "https://we.the.best")
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
+    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, service_url: "https://we.the.best")
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal("", service_response.result)
   end
 
   def test_dummy_request_form_data
+    authenticator = IBMCloudSdkCore::BearerTokenAuthenticator.new(bearer_token: "token")
     service = IBMCloudSdkCore::BaseService.new(
       display_name: "Assistant",
-      apikey: "apikey",
-      iam_access_token: "token",
-      url: "https://gateway.watsonplatform.net/"
+      authenticator: authenticator,
+      service_url: "https://gateway.watsonplatform.net/"
     )
     form_data = {}
     file = File.open(Dir.getwd + "/resources/cnc_test.pdf")
@@ -143,9 +149,9 @@ class BaseServiceTest < Minitest::Test
           "Host" => "we.the.best"
         }
       ).to_return(status: 500, body: response.to_json, headers: {})
-    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "Salah")
-    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, url: "https://we.the.best")
-    assert_raises do
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
+    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, service_url: "https://we.the.best")
+    assert_raises IBMCloudSdkCore::ApiException do
       service.request(method: "GET", url: "/music", headers: {})
     end
   end
@@ -172,66 +178,9 @@ class BaseServiceTest < Minitest::Test
     service = IBMCloudSdkCore::BaseService.new(
       display_name: "Assistant",
       authenticator: authenticator,
-      url: "https://we.the.best"
+      service_url: "https://we.the.best"
     )
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal(response, service_response.result)
   end
-
-  def test_for_cp4d_authenticator
-    token_layout = {
-      "username": "dummy",
-      "role": "Admin",
-      "permissions": %w[administrator manage_catalog],
-      "sub": "admin",
-      "iss": "sss",
-      "aud": "sss",
-      "uid": "sss",
-      "iat": Time.now.to_i + 3600,
-      "exp": Time.now.to_i
-    }
-    token = JWT.encode token_layout, "secret", "HS256"
-    response = {
-      "accessToken" => token,
-      "token_type" => "Bearer",
-      "expires_in" => 3600,
-      "expiration" => 1_524_167_011,
-      "refresh_token" => "jy4gl91BQ"
-    }
-    stub_request(:get, "https://hello.world/v1/preauth/validateAuth")
-      .with(
-        headers: {
-          "Authorization" => "Basic aGVsbG86d29ybGQ=",
-          "Connection" => "close",
-          "Host" => "hello.world"
-        }
-      )
-      .to_return(status: 200, body: response.to_json, headers: {})
-    authenticator = IBMCloudSdkCore::CloudPakForDataAuthenticator.new(
-      username: "hello",
-      password: "world",
-      url: "https://hello.world"
-    )
-    refute_nil(authenticator)
-  end
-
-  # def test_CP4D_disable_ssl
-  #   authenticator = IBMCloudSdkCore::CloudPakForDataAuthenticator.new(
-  #     username: "username",
-  #     password: "password"
-  #   )
-  #   IBMCloudSdkCore::BaseService.new(
-  #     display_name: "Assistant",
-  #     url: "http://the.com",
-  #     authenticator: authenticator
-  #   )
-  #   stub_request(:get, "http://the.com/music")
-  #     .with(
-  #       headers: {
-  #         "Authorization" => "Basic Og==",
-  #         "Host" => "the.com"
-  #       }
-  #     ).to_return(status: 200, body: {}.to_json, headers: {})
-  #   assert_equal(authenticator.instance_variable_get(:@access_token), "token")
-  # end
 end

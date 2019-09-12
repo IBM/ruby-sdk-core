@@ -23,7 +23,7 @@ end
 module IBMCloudSdkCore
   # Class for interacting with the API
   class BaseService
-    attr_accessor :display_name
+    attr_accessor :display_name, :service_url, :disable_ssl_verification
     attr_reader :conn, :authenticator
     def initialize(vars)
       defaults = {
@@ -32,15 +32,16 @@ module IBMCloudSdkCore
         display_name: nil
       }
       vars = defaults.merge(vars)
-      @url = vars[:url]
+      @service_url = vars[:service_url]
       @authenticator = vars[:authenticator]
       @disable_ssl_verification = vars[:disable_ssl_verification]
       @display_name = vars[:display_name]
       @service_name = @display_name.tr(" ", "_").downcase unless @display_name.nil?
+      @authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: @service_name) if @authenticator.nil?
 
-      if @service_name && !@url
+      if @service_name && !@service_url
         config = get_service_properties(@service_name)
-        @url = config[:url] unless config.nil?
+        @service_url = config[:url] unless config.nil?
       end
 
       @temp_headers = {}
@@ -74,13 +75,17 @@ module IBMCloudSdkCore
 
       conn = @conn
 
+      @authenticator.authenticate(@temp_headers)
       args[:headers] = args[:headers].merge(@temp_headers) unless @temp_headers.nil?
       @temp_headers = nil unless @temp_headers.nil?
+
+      raise ArgumentError.new("service_url must be provided") if @service_url.nil?
+      raise ArgumentError.new('The service_url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your username') if check_bad_first_or_last_char(@service_url)
 
       if args.key?(:form)
         response = conn.follow.request(
           args[:method],
-          HTTP::URI.parse(@url + args[:url]),
+          HTTP::URI.parse(@service_url + args[:url]),
           headers: conn.default_options.headers.merge(HTTP::Headers.coerce(args[:headers])),
           params: args[:params],
           form: args[:form]
@@ -88,7 +93,7 @@ module IBMCloudSdkCore
       else
         response = conn.follow.request(
           args[:method],
-          HTTP::URI.parse(@url + args[:url]),
+          HTTP::URI.parse(@service_url + args[:url]),
           headers: conn.default_options.headers.merge(HTTP::Headers.coerce(args[:headers])),
           body: args[:json],
           params: args[:params]

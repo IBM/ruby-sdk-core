@@ -8,7 +8,7 @@ require_relative("../utils.rb")
 module IBMCloudSdkCore
   # Basic Authenticator
   class CloudPakForDataAuthenticator < Authenticator
-    attr_accessor :authentication_type
+    attr_accessor :authentication_type, :disable_ssl_verification
     def initialize(vars)
       defaults = {
         username: nil,
@@ -33,14 +33,14 @@ module IBMCloudSdkCore
     end
 
     # Adds the Authorization header, if possible
-    def authenticate(connector)
-      connector.default_options.headers.add("Authorization", "Bearer #{@token_manager.access_token}")
+    def authenticate(headers)
+      headers["Authorization"] = "Bearer #{@token_manager.access_token}"
     end
 
     # Checks if all the inputs needed are present
     def validate
       raise ArgumentError.new("The username or password shouldn\'t be None.") if @username.nil? || @password.nil?
-      raise ArgumentError.new("The url or password shouldn\'t be None.") if @url.nil?
+      raise ArgumentError.new("The url shouldn\'t be None.") if @url.nil?
       raise ArgumentError.new('The username shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your username') if check_bad_first_or_last_char(@username)
       raise ArgumentError.new('The password shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your password') if check_bad_first_or_last_char(@password)
       raise ArgumentError.new('The url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your url') if check_bad_first_or_last_char(@url)
