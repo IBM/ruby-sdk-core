@@ -24,7 +24,6 @@ module IBMCloudSdkCore
     def authenticate(headers)
       base64_authentication = Base64.strict_encode64("#{@username}:#{@password}")
       headers["Authorization"] = "Basic #{base64_authentication}"
-      headers
     end
 
     # Checks if all the inputs needed are present
