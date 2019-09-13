@@ -76,7 +76,7 @@ module IBMCloudSdkCore
 
       conn = @conn
 
-      @authenticator.authenticate(@temp_headers)
+      @authenticator.authenticate(args[:headers])
       args[:headers] = args[:headers].merge(@temp_headers) unless @temp_headers.nil?
       @temp_headers = {} unless @temp_headers.nil?
 
