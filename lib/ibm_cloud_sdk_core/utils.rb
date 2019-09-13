@@ -20,15 +20,15 @@ end
 def load_from_credential_file(service_name, separator = "=")
   credential_file_path = ENV["IBM_CREDENTIALS_FILE"]
 
-  # Home directory
-  if credential_file_path.nil?
-    file_path = ENV["HOME"] + "/" + DEFAULT_CREDENTIALS_FILE_NAME
-    credential_file_path = file_path if File.exist?(file_path)
-  end
-
   # Top-level directory of the project
   if credential_file_path.nil?
     file_path = File.join(File.dirname(__FILE__), "/../../" + DEFAULT_CREDENTIALS_FILE_NAME)
+    credential_file_path = file_path if File.exist?(file_path)
+  end
+
+  # Home directory
+  if credential_file_path.nil?
+    file_path = ENV["HOME"] + "/" + DEFAULT_CREDENTIALS_FILE_NAME
     credential_file_path = file_path if File.exist?(file_path)
   end
 
