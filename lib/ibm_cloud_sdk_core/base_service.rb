@@ -23,20 +23,19 @@ end
 module IBMCloudSdkCore
   # Class for interacting with the API
   class BaseService
-    attr_accessor :display_name, :service_url, :disable_ssl_verification
+    attr_accessor :service_name, :service_url, :disable_ssl_verification
     attr_reader :conn, :authenticator
     def initialize(vars)
       defaults = {
         authenticator: nil,
         disable_ssl_verification: false,
-        display_name: nil
+        service_name: nil
       }
       vars = defaults.merge(vars)
       @service_url = vars[:service_url]
       @authenticator = vars[:authenticator]
       @disable_ssl_verification = vars[:disable_ssl_verification]
-      @display_name = vars[:display_name]
-      @service_name = @display_name.tr(" ", "_").downcase unless @display_name.nil?
+      @service_name = vars[:service_name]
 
       raise ArgumentError.new("authenticator must be provided") if @authenticator.nil?
 

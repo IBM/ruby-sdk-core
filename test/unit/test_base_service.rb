@@ -48,10 +48,11 @@ class BaseServiceTest < Minitest::Test
     ENV["IBM_CREDENTIALS_FILE"] = file_path
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "red_sox")
     service = IBMCloudSdkCore::BaseService.new(
-      display_name: "Assistant",
+      service_name: "assistant",
       authenticator: authenticator
     )
     refute_nil(service)
+    ENV.delete("IBM_CREDENTIALS_FILE")
   end
 
   def test_correct_creds_and_headers
@@ -60,7 +61,7 @@ class BaseServiceTest < Minitest::Test
       password: "password"
     )
     service = IBMCloudSdkCore::BaseService.new(
-      display_name: "Assistant",
+      service_name: "assistant",
       authenticator: authenticator
     )
     service.add_default_headers(
@@ -85,7 +86,7 @@ class BaseServiceTest < Minitest::Test
     file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
     ENV["IBM_CREDENTIALS_FILE"] = file_path
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "leo_messi")
-    service = IBMCloudSdkCore::BaseService.new(display_name: "Leo Messi", url: "some.url", authenticator: authenticator)
+    service = IBMCloudSdkCore::BaseService.new(service_name: "leo_messi", url: "some.url", authenticator: authenticator)
     assert_equal(authenticator.authentication_type, "bearerToken")
     refute_nil(service)
   end
@@ -93,9 +94,9 @@ class BaseServiceTest < Minitest::Test
   def test_vcap_services
     ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
-    service = IBMCloudSdkCore::BaseService.new(display_name: "salah", authenticator: authenticator)
+    service = IBMCloudSdkCore::BaseService.new(service_name: "salah", authenticator: authenticator)
     assert_equal(authenticator.username, "mo")
-    assert_equal(service.display_name, "salah")
+    assert_equal(service.service_name, "salah")
   end
 
   def test_dummy_request
@@ -107,7 +108,7 @@ class BaseServiceTest < Minitest::Test
         }
       ).to_return(status: 200, body: "", headers: {})
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
-    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, service_url: "https://we.the.best")
+    service = IBMCloudSdkCore::BaseService.new(service_name: "salah", authenticator: authenticator, service_url: "https://we.the.best")
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal("", service_response.result)
   end
@@ -115,7 +116,7 @@ class BaseServiceTest < Minitest::Test
   def test_dummy_request_form_data
     authenticator = IBMCloudSdkCore::BearerTokenAuthenticator.new(bearer_token: "token")
     service = IBMCloudSdkCore::BaseService.new(
-      display_name: "Assistant",
+      service_name: "assistant",
       authenticator: authenticator,
       service_url: "https://gateway.watsonplatform.net/"
     )
@@ -150,7 +151,7 @@ class BaseServiceTest < Minitest::Test
         }
       ).to_return(status: 500, body: response.to_json, headers: {})
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
-    service = IBMCloudSdkCore::BaseService.new(display_name: "Salah", authenticator: authenticator, service_url: "https://we.the.best")
+    service = IBMCloudSdkCore::BaseService.new(service_name: "salah", authenticator: authenticator, service_url: "https://we.the.best")
     assert_raises IBMCloudSdkCore::ApiException do
       service.request(method: "GET", url: "/music", headers: {})
     end
@@ -176,7 +177,7 @@ class BaseServiceTest < Minitest::Test
       password: "icp-xyz"
     )
     service = IBMCloudSdkCore::BaseService.new(
-      display_name: "Assistant",
+      service_name: "assistant",
       authenticator: authenticator,
       service_url: "https://we.the.best"
     )

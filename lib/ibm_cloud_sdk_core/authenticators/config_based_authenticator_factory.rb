@@ -26,6 +26,8 @@ module IBMCloudSdkCore
       else
         auth_type = config[:auth_type]
       end
+      config.delete(:url) unless config[:url].nil?
+      config[:url] = config[:auth_url] unless config[:auth_url].nil?
       return BasicAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_BASIC).zero?
       return BearerTokenAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_BEARER_TOKEN).zero?
       return CloudPakForDataAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_CP4D).zero?

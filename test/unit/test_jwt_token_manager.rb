@@ -125,7 +125,7 @@ class JWTTokenManagerTest < Minitest::Test
       disable_ssl_verification: true
     )
     IBMCloudSdkCore::BaseService.new(
-      display_name: "Assistant",
+      service_name: "assistant",
       service_url: "http://the.com",
       authenticator: authenticator
     )
