@@ -140,4 +140,46 @@ class IamAuthenticatorTest < Minitest::Test
     authenticator.authenticate(headers)
     assert_equal(headers, authenticated_headers)
   end
+
+  def test_iam_authenticator_auth_url
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
+    token_layout = {
+      "username": "dummy",
+      "role": "Admin",
+      "permissions": %w[administrator manage_catalog],
+      "sub": "admin",
+      "iss": "sss",
+      "aud": "sss",
+      "uid": "sss",
+      "iat": Time.now.to_i + 3600,
+      "exp": Time.now.to_i
+    }
+    token = JWT.encode token_layout, "secret", "HS256"
+    response = {
+      "access_token" => token,
+      "token_type" => "Bearer",
+      "expires_in" => 3600,
+      "expiration" => 1_524_167_011,
+      "refresh_token" => "jy4gl91BQ"
+    }
+    stub_request(:post, "https://my.link/identity/token")
+      .with(
+        body: {
+          "apikey" => "mesSi",
+          "grant_type" => "urn:ibm:params:oauth:grant-type:apikey",
+          "response_type" => "cloud_iam"
+        },
+        headers: {
+          "Connection" => "close",
+          "Host" => "my.link",
+          "User-Agent" => "http.rb/4.1.1"
+        }
+      )
+      .to_return(status: 200, body: response.to_json, headers: {})
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "my_service")
+    refute_nil(authenticator)
+    assert_equal(authenticator.instance_variable_get(:@token_manager).access_token, token)
+    ENV.delete("IBM_CREDENTIALS_FILE")
+  end
 end
