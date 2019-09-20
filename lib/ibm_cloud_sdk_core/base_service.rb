@@ -44,6 +44,7 @@ module IBMCloudSdkCore
         @service_url = config[:url] unless config.nil?
       end
 
+      configure_http_client(disable_ssl_verification: @disable_ssl_verification)
       @temp_headers = {}
       @conn = HTTP::Client.new(
         headers: {}
@@ -102,6 +103,8 @@ module IBMCloudSdkCore
       return DetailedResponse.new(response: response) if (200..299).cover?(response.code)
 
       raise ApiException.new(response: response)
+    rescue OpenSSL::SSL::SSLError
+      raise StandardError.new("If you're trying to call a service on ICP or Cloud Pak for Data, you may not have a valid SSL certificate. If you need to access the service without setting that up, try using the disableSslVerification option in your authentication configuration and/or setting DisableSslVerification(true); on your service.")
     end
 
     # @note Chainable
