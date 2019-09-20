@@ -23,8 +23,8 @@ end
 module IBMCloudSdkCore
   # Class for interacting with the API
   class BaseService
-    attr_accessor :service_name, :service_url, :disable_ssl_verification
-    attr_reader :conn, :authenticator
+    attr_accessor :service_name, :service_url
+    attr_reader :conn, :authenticator, :disable_ssl_verification
     def initialize(vars)
       defaults = {
         authenticator: nil,
@@ -49,6 +49,10 @@ module IBMCloudSdkCore
       @conn = HTTP::Client.new(
         headers: {}
       ).use normalize_uri: { normalizer: NORMALIZER }
+    end
+
+    def disable_ssl_verification=(disable_ssl_verification)
+      configure_http_client(disable_ssl_verification: disable_ssl_verification)
     end
 
     def add_default_headers(headers: {})
@@ -104,7 +108,7 @@ module IBMCloudSdkCore
 
       raise ApiException.new(response: response)
     rescue OpenSSL::SSL::SSLError
-      raise StandardError.new("If you're trying to call a service on ICP or Cloud Pak for Data, you may not have a valid SSL certificate. If you need to access the service without setting that up, try using the disableSslVerification option in your authentication configuration and/or setting DisableSslVerification(true); on your service.")
+      raise StandardError.new("If you're trying to call a service on ICP or Cloud Pak for Data, you may not have a valid SSL certificate. If you need to access the service without setting that up, try using the disable_ssl_verification option in your authentication configuration and/or setting disable_ssl_verification; on your service.")
     end
 
     # @note Chainable
