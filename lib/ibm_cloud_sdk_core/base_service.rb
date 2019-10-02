@@ -108,7 +108,7 @@ module IBMCloudSdkCore
 
       raise ApiException.new(response: response)
     rescue OpenSSL::SSL::SSLError
-      raise StandardError.new("If you're trying to call a service on ICP or Cloud Pak for Data, you may not have a valid SSL certificate. If you need to access the service without setting that up, try using the disable_ssl_verification option in your authentication configuration and/or setting disable_ssl_verification; on your service.")
+      raise StandardError.new("The connection failed because the SSL certificate is not valid. To use a self-signed certificate, set the disable_ssl_verification parameter in configure_http_client.")
     end
 
     # @note Chainable
