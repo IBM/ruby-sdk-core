@@ -4,13 +4,18 @@ require("http")
 require("rbconfig")
 require("stringio")
 require("json")
+require_relative("./version.rb")
 require_relative("./detailed_response.rb")
 require_relative("./api_exception.rb")
-require_relative("./iam_token_manager.rb")
-require_relative("./icp4d_token_manager.rb")
-require_relative("./version.rb")
+require_relative("./utils.rb")
+require_relative("./authenticators/authenticator")
+require_relative("./authenticators/basic_authenticator")
+require_relative("./authenticators/bearer_token_authenticator")
+require_relative("./authenticators/config_based_authenticator_factory")
+require_relative("./authenticators/iam_authenticator")
+require_relative("./authenticators/cp4d_authenticator")
+require_relative("./authenticators/no_auth_authenticator")
 
-DEFAULT_CREDENTIALS_FILE_NAME = "ibm-credentials.env"
 NORMALIZER = lambda do |uri| # Custom URI normalizer when using HTTP Client
   HTTP::URI.parse uri
 end
@@ -18,141 +23,42 @@ end
 module IBMCloudSdkCore
   # Class for interacting with the API
   class BaseService
-    attr_accessor :password, :url, :username, :display_name
-    attr_reader :conn, :token_manager
+    attr_accessor :service_name, :service_url
+    attr_reader :conn, :authenticator, :disable_ssl_verification
     def initialize(vars)
       defaults = {
-        vcap_services_name: nil,
-        use_vcap_services: true,
-        authentication_type: nil,
-        username: nil,
-        password: nil,
-        icp4d_access_token: nil,
-        icp4d_url: nil,
-        iam_apikey: nil,
-        iam_access_token: nil,
-        iam_url: nil,
-        iam_client_id: nil,
-        iam_client_secret: nil,
-        display_name: nil
+        authenticator: nil,
+        disable_ssl_verification: false,
+        service_name: nil
       }
       vars = defaults.merge(vars)
-      @url = vars[:url]
-      @username = vars[:username]
-      @password = vars[:password]
-      @icp_prefix = vars[:password]&.start_with?("icp-") || vars[:iam_apikey]&.start_with?("icp-") ? true : false
-      @icp4d_access_token = vars[:icp4d_access_token]
-      @icp4d_url = vars[:icp4d_url]
-      @iam_url = vars[:iam_url]
-      @iam_apikey = vars[:iam_apikey]
-      @iam_access_token = vars[:iam_access_token]
-      @token_manager = nil
-      @authentication_type = vars[:authentication_type].downcase unless vars[:authentication_type].nil?
-      @temp_headers = nil
-      @disable_ssl_verification = false
-      @display_name = vars[:display_name]
+      @service_url = vars[:service_url]
+      @authenticator = vars[:authenticator]
+      @disable_ssl_verification = vars[:disable_ssl_verification]
+      @service_name = vars[:service_name]
 
-      if vars[:use_vcap_services] && !@username && !@iam_apikey
-        @vcap_service_credentials = load_from_vcap_services(service_name: vars[:vcap_services_name])
-        if !@vcap_service_credentials.nil? && @vcap_service_credentials.instance_of?(Hash)
-          @url = @vcap_service_credentials["url"]
-          @username = @vcap_service_credentials["username"] if @vcap_service_credentials.key?("username")
-          @password = @vcap_service_credentials["password"] if @vcap_service_credentials.key?("password")
-          @iam_apikey = @vcap_service_credentials["iam_apikey"] if @vcap_service_credentials.key?("iam_apikey")
-          @iam_access_token = @vcap_service_credentials["iam_access_token"] if @vcap_service_credentials.key?("iam_access_token")
-          @icp4d_access_token = @vcap_service_credentials["icp4d_access_token"] if @vcap_service_credentials.key?("icp4d_access_token")
-          @icp4d_url = @vcap_service_credentials["icp4d_url"] if @vcap_service_credentials.key?("icp4d_url")
-          @iam_url = @vcap_service_credentials["iam_url"] if @vcap_service_credentials.key?("iam_url")
-          @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
-        end
+      raise ArgumentError.new("authenticator must be provided") if @authenticator.nil?
+
+      if @service_name && !@service_url
+        config = get_service_properties(@service_name)
+        @service_url = config[:url] unless config.nil?
       end
 
-      if @display_name && !@username && !@iam_apikey
-        service_name = @display_name.tr(" ", "_").downcase
-        load_from_credential_file(service_name)
-        @icp_prefix = @password&.start_with?("icp-") || @iam_apikey&.start_with?("icp-") ? true : false
-      end
-
-      if @authentication_type == "iam" || ((!@iam_access_token.nil? || !@iam_apikey.nil?) && !@icp_prefix)
-        iam_token_manager(iam_apikey: @iam_apikey, iam_access_token: @iam_access_token,
-                          iam_url: @iam_url, iam_client_id: @iam_client_id,
-                          iam_client_secret: @iam_client_secret)
-      elsif !@iam_apikey.nil? && @icp_prefix
-        @username = "apikey"
-        @password = vars[:iam_apikey]
-      elsif @authentication_type == "icp4d" || !@icp4d_access_token.nil?
-        icp4d_token_manager(icp4d_access_token: @icp4d_access_token, icp4d_url: @icp4d_url,
-                            username: @username, password: @password)
-      elsif !@username.nil? && !@password.nil?
-        if @username == "apikey" && !@icp_prefix
-          iam_apikey(iam_apikey: @password)
-        else
-          @username = @username
-          @password = @password
-        end
-      end
-
-      raise ArgumentError.new('The username shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your username') if check_bad_first_or_last_char(@username)
-      raise ArgumentError.new('The password shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your password') if check_bad_first_or_last_char(@password)
-      raise ArgumentError.new('The url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your url') if check_bad_first_or_last_char(@url)
-      raise ArgumentError.new('The apikey shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your apikey') if check_bad_first_or_last_char(@iam_apikey)
-      raise ArgumentError.new('The iam access token  shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your iam access token') if check_bad_first_or_last_char(@iam_access_token)
-      raise ArgumentError.new('The icp4d access token  shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your icp4d access token') if check_bad_first_or_last_char(@icp4d_access_token)
-      raise ArgumentError.new('The icp4d url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your icp4d url') if check_bad_first_or_last_char(@icp4d_url)
-
+      configure_http_client(disable_ssl_verification: @disable_ssl_verification)
+      @temp_headers = {}
       @conn = HTTP::Client.new(
         headers: {}
       ).use normalize_uri: { normalizer: NORMALIZER }
     end
 
-    # Initiates the credentials based on the credential file
-    def load_from_credential_file(service_name, separator = "=")
-      credential_file_path = ENV["IBM_CREDENTIALS_FILE"]
-
-      # Home directory
-      if credential_file_path.nil?
-        file_path = ENV["HOME"] + "/" + DEFAULT_CREDENTIALS_FILE_NAME
-        credential_file_path = file_path if File.exist?(file_path)
-      end
-
-      # Top-level directory of the project
-      if credential_file_path.nil?
-        file_path = File.join(File.dirname(__FILE__), "/../../" + DEFAULT_CREDENTIALS_FILE_NAME)
-        credential_file_path = file_path if File.exist?(file_path)
-      end
-
-      return if credential_file_path.nil?
-
-      file_contents = File.open(credential_file_path, "r")
-      file_contents.each_line do |line|
-        key_val = line.strip.split(separator)
-        set_credential_based_on_type(service_name, key_val[0].downcase, key_val[1]) if key_val.length == 2
-      end
-    end
-
-    def load_from_vcap_services(service_name:)
-      vcap_services = ENV["VCAP_SERVICES"]
-      unless vcap_services.nil?
-        services = JSON.parse(vcap_services)
-        return services[service_name][0]["credentials"] if services.key?(service_name)
-      end
-      nil
+    def disable_ssl_verification=(disable_ssl_verification)
+      configure_http_client(disable_ssl_verification: disable_ssl_verification)
     end
 
     def add_default_headers(headers: {})
       raise TypeError unless headers.instance_of?(Hash)
 
       headers.each_pair { |k, v| @conn.default_options.headers.add(k, v) }
-    end
-
-    def iam_access_token(iam_access_token:)
-      @token_manager = IAMTokenManager.new(iam_access_token: iam_access_token) if @token_manager.nil?
-      @iam_access_token = iam_access_token
-    end
-
-    def iam_apikey(iam_apikey:)
-      @token_manager = IAMTokenManager.new(iam_apikey: iam_apikey) if @token_manager.nil?
-      @iam_apikey = iam_apikey
     end
 
     # @return [DetailedResponse]
@@ -172,28 +78,19 @@ module IBMCloudSdkCore
       args.delete_if { |_, v| v.nil? }
       args[:headers].delete("Content-Type") if args.key?(:form) || args[:json].nil?
 
-      if @username == "apikey" && !@icp_prefix
-        iam_apikey(iam_apikey: @password)
-        @username = nil
-      end
-
       conn = @conn
-      if !@iam_apikey.nil? && @icp_prefix
-        conn = @conn.basic_auth(user: "apikey", pass: @iam_apikey)
-      elsif !@token_manager.nil?
-        access_token = @token_manager.token
-        args[:headers]["Authorization"] = "Bearer #{access_token}"
-      elsif !@username.nil? && !@password.nil?
-        conn = @conn.basic_auth(user: @username, pass: @password)
-      end
 
+      @authenticator.authenticate(args[:headers])
       args[:headers] = args[:headers].merge(@temp_headers) unless @temp_headers.nil?
-      @temp_headers = nil unless @temp_headers.nil?
+      @temp_headers = {} unless @temp_headers.nil?
+
+      raise ArgumentError.new("service_url must be provided") if @service_url.nil?
+      raise ArgumentError.new('The service_url shouldn\'t start or end with curly brackets or quotes. Be sure to remove any {} and \" characters surrounding your username') if check_bad_first_or_last_char(@service_url)
 
       if args.key?(:form)
         response = conn.follow.request(
           args[:method],
-          HTTP::URI.parse(@url + args[:url]),
+          HTTP::URI.parse(@service_url + args[:url]),
           headers: conn.default_options.headers.merge(HTTP::Headers.coerce(args[:headers])),
           params: args[:params],
           form: args[:form]
@@ -201,7 +98,7 @@ module IBMCloudSdkCore
       else
         response = conn.follow.request(
           args[:method],
-          HTTP::URI.parse(@url + args[:url]),
+          HTTP::URI.parse(@service_url + args[:url]),
           headers: conn.default_options.headers.merge(HTTP::Headers.coerce(args[:headers])),
           body: args[:json],
           params: args[:params]
@@ -210,6 +107,8 @@ module IBMCloudSdkCore
       return DetailedResponse.new(response: response) if (200..299).cover?(response.code)
 
       raise ApiException.new(response: response)
+    rescue OpenSSL::SSL::SSLError
+      raise StandardError.new("The connection failed because the SSL certificate is not valid. To use a self-signed certificate, set the disable_ssl_verification parameter in configure_http_client.")
     end
 
     # @note Chainable
@@ -252,42 +151,6 @@ module IBMCloudSdkCore
     end
 
     private
-
-    def set_credential_based_on_type(service_name, key, value)
-      return unless key.include?(service_name)
-
-      @iam_apikey = value if key.include?("iam_apikey") || key.include?("apikey")
-      @iam_url = value if key.include?("iam_url")
-      @url = value if key.include?("url")
-      @username = value if key.include?("username")
-      @password = value if key.include?("password")
-    end
-
-    def check_bad_first_or_last_char(str)
-      return str.start_with?("{", "\"") || str.end_with?("}", "\"") unless str.nil?
-    end
-
-    def iam_token_manager(iam_apikey: nil, iam_access_token: nil, iam_url: nil,
-                          iam_client_id: nil, iam_client_secret: nil)
-      @iam_apikey = iam_apikey
-      @iam_access_token = iam_access_token
-      @iam_url = iam_url
-      @iam_client_id = iam_client_id
-      @iam_client_secret = iam_client_secret
-      @token_manager =
-        IAMTokenManager.new(iam_apikey: iam_apikey, iam_access_token: iam_access_token,
-                            iam_url: iam_url, iam_client_id: iam_client_id, iam_client_secret: iam_client_secret)
-    end
-
-    def icp4d_token_manager(icp4d_access_token: nil, icp4d_url: nil, username: nil, password: nil)
-      if !@token_manager.nil?
-        @token_manager.access_token(icp4d_access_token)
-      else
-        raise ArgumentError.new("The icp4d_url is mandatory for ICP4D.") if icp4d_url.nil? && icp4d_access_token.nil?
-
-        @token_manager = ICP4DTokenManager.new(url: icp4d_url, access_token: icp4d_access_token, username: username, password: password)
-      end
-    end
 
     def add_timeout(timeout)
       if timeout.key?(:per_operation)

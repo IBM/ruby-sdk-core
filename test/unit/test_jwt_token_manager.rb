@@ -18,26 +18,23 @@ class JWTTokenManagerTest < Minitest::Test
     }
 
     token_manager = IBMCloudSdkCore::JWTTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
+      CP4D_url: "https://the.sixth.one",
       username: "you",
       password: "me"
     )
     stub_request(:get, "https://the.sixth.one")
       .with(
         headers: {
-          "Authorization" => "Basic Og==",
           "Host" => "the.sixth.one"
         }
       ).to_return(status: 200, body: response.to_json, headers: {})
     token_response = token_manager.send(:request, method: "get", url: "https://the.sixth.one")
     assert_equal(response, token_response)
-    token_manager.access_token("token")
-    assert_equal(token_manager.instance_variable_get(:@user_access_token), "token")
   end
 
   def test_request_token_fails
     token_manager = IBMCloudSdkCore::JWTTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
+      url: "https://the.sixth.one",
       username: "you",
       password: "me"
     )
@@ -48,7 +45,6 @@ class JWTTokenManagerTest < Minitest::Test
     stub_request(:get, "https://the.sixth.one/")
       .with(
         headers: {
-          "Authorization" => "Basic Og==",
           "Host" => "the.sixth.one"
         }
       ).to_return(status: 500, body: response.to_json, headers: {})
@@ -57,17 +53,6 @@ class JWTTokenManagerTest < Minitest::Test
     rescue IBMCloudSdkCore::ApiException => e
       assert(e.to_s.instance_of?(String))
     end
-  end
-
-  def test_request_token_exists
-    token_manager = IBMCloudSdkCore::JWTTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
-      username: "you",
-      password: "me",
-      access_token: "token"
-    )
-    token_response = token_manager.send(:token)
-    assert_equal("token", token_response)
   end
 
   def test_request_token_not_expired
@@ -93,7 +78,7 @@ class JWTTokenManagerTest < Minitest::Test
     }
 
     token_manager = IBMCloudSdkCore::JWTTokenManager.new(
-      icp4d_url: "https://the.sixth.one",
+      CP4D_url: "https://the.sixth.one",
       username: "you",
       password: "me",
       token_name: "accessToken"
@@ -101,5 +86,56 @@ class JWTTokenManagerTest < Minitest::Test
     token_manager.send(:save_token_info, token_info: token)
     token_response = token_manager.send(:token)
     assert_equal(access_token, token_response)
+  end
+
+  def test_cp4d_disable_ssl
+    token_layout = {
+      "username": "dummy",
+      "role": "Admin",
+      "permissions": %w[administrator manage_catalog],
+      "sub": "admin",
+      "iss": "sss",
+      "aud": "sss",
+      "uid": "sss",
+      "iat": Time.now.to_i + 3600,
+      "exp": Time.now.to_i
+    }
+    token = JWT.encode token_layout, "secret", "HS256"
+    response = {
+      "accessToken" => token,
+      "token_type" => "Bearer",
+      "expires_in" => 3600,
+      "expiration" => 1_524_167_011,
+      "refresh_token" => "jy4gl91BQ"
+    }
+    stub_request(:get, "https://icp.com/v1/preauth/validateAuth")
+      .with(
+        headers: {
+          "Authorization" => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=",
+          "Connection" => "close",
+          "Host" => "icp.com",
+          "User-Agent" => "http.rb/4.1.1"
+        }
+      )
+      .to_return(status: 200, body: response.to_json, headers: {})
+    authenticator = IBMCloudSdkCore::CloudPakForDataAuthenticator.new(
+      username: "username",
+      password: "password",
+      url: "https://icp.com",
+      disable_ssl_verification: true
+    )
+    IBMCloudSdkCore::BaseService.new(
+      service_name: "assistant",
+      service_url: "http://the.com",
+      authenticator: authenticator
+    )
+    stub_request(:get, "http://the.com/music")
+      .with(
+        headers: {
+          "Authorization" => "Basic Og==",
+          "Host" => "the.com"
+        }
+      ).to_return(status: 200, body: {}.to_json, headers: {})
+    assert_equal(authenticator.instance_variable_get(:@token_manager).access_token, token)
   end
 end
