@@ -31,7 +31,7 @@ This indicates Basic Auth is to be used. Users will pass in a `username` and `pa
 This indicates that bearer token authentication is to be used. Users can pass in an `bearer_token`, and SDK will generate a Bearer Auth header to send with requests to the service.
 
 ### iam
-This indicates that IAM token authentication is to be used. Users can pass in an `iam_apikey`. The SDK will manage the token for the user and it will generate a Bearer Auth header to send with requests to the service.
+This indicates that IAM token authentication is to be used. Users can pass in an `apikey`. The SDK will manage the token for the user and it will generate a Bearer Auth header to send with requests to the service.
 
 ### cp4d
 This indicates that the service is an instance of ICP4D, which has its own version of token authentication. Users can pass in a `username` and `password`. If a username and password is given, the SDK will manage the token for the user.
