@@ -82,6 +82,47 @@ class BaseServiceTest < Minitest::Test
     ENV.delete("IBM_CREDENTIALS_FILE")
   end
 
+  def test_set_credentials_from_path_invalid_auth_type_value
+    token_layout = {
+      "username": "dummy",
+      "role": "Admin",
+      "permissions": %w[administrator manage_catalog],
+      "sub": "admin",
+      "iss": "sss",
+      "aud": "sss",
+      "uid": "sss",
+      "iat": Time.now.to_i + 3600,
+      "exp": Time.now.to_i
+    }
+    token = JWT.encode token_layout, "secret", "HS256"
+    response = {
+      "access_token" => token,
+      "token_type" => "Bearer",
+      "expires_in" => 3600,
+      "expiration" => 1_524_167_011,
+      "refresh_token" => "jy4gl91BQ"
+    }
+    stub_request(:post, "https://iam.cloud.ibm.com/identity/token")
+      .with(
+        body: {
+          "apikey" => "sadio",
+          "grant_type" => "urn:ibm:params:oauth:grant-type:apikey",
+          "response_type" => "cloud_iam"
+        },
+        headers: {
+          "Connection" => "close",
+          "Host" => "iam.cloud.ibm.com",
+          "User-Agent" => "http.rb/4.1.1"
+        }
+      )
+      .to_return(status: 200, body: response.to_json, headers: {})
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
+    authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "mane")
+    assert_equal(authenticator.authentication_type, "iam")
+    ENV.delete("IBM_CREDENTIALS_FILE")
+  end
+
   def test_set_credentials_from_path_in_env_bearer_token
     file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
     ENV["IBM_CREDENTIALS_FILE"] = file_path
