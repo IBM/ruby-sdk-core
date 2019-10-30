@@ -10,7 +10,7 @@ module IBMCloudSdkCore
       @authentication_type = AUTH_TYPE_NO_AUTH
     end
 
-    def authenticate
+    def authenticate(*)
       nil
     end
 
