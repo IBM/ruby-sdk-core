@@ -26,6 +26,7 @@ class BaseServiceTest < Minitest::Test
     assert_raises do
       IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "wrong")
     end
+    ENV.delete("IBM_CREDENTIALS_FILE")
   end
 
   def test_wrong_url
@@ -89,6 +90,7 @@ class BaseServiceTest < Minitest::Test
     service = IBMCloudSdkCore::BaseService.new(service_name: "leo_messi", url: "some.url", authenticator: authenticator)
     assert_equal(authenticator.authentication_type, "bearerToken")
     refute_nil(service)
+    ENV.delete("IBM_CREDENTIALS_FILE")
   end
 
   def test_vcap_services
@@ -97,6 +99,7 @@ class BaseServiceTest < Minitest::Test
     service = IBMCloudSdkCore::BaseService.new(service_name: "salah", authenticator: authenticator)
     assert_equal(authenticator.username, "mo")
     assert_equal(service.service_name, "salah")
+    ENV.delete("VCAP_SERVICES")
   end
 
   def test_dummy_request
@@ -108,9 +111,11 @@ class BaseServiceTest < Minitest::Test
         }
       ).to_return(status: 200, body: "", headers: {})
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
-    service = IBMCloudSdkCore::BaseService.new(service_name: "salah", authenticator: authenticator, service_url: "https://we.the.best")
+    service = IBMCloudSdkCore::BaseService.new(service_name: "salah", authenticator: authenticator)
+    service.service_url = "https://we.the.best"
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal("", service_response.result)
+    ENV.delete("VCAP_SERVICES")
   end
 
   def test_dummy_request_form_data
@@ -151,10 +156,12 @@ class BaseServiceTest < Minitest::Test
         }
       ).to_return(status: 500, body: response.to_json, headers: {})
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
-    service = IBMCloudSdkCore::BaseService.new(service_name: "salah", authenticator: authenticator, service_url: "https://we.the.best")
+    service = IBMCloudSdkCore::BaseService.new(service_name: "salah", authenticator: authenticator)
+    service.service_url = "https://we.the.best"
     assert_raises IBMCloudSdkCore::ApiException do
       service.request(method: "GET", url: "/music", headers: {})
     end
+    ENV.delete("VCAP_SERVICES")
   end
 
   def test_dummy_request_icp
@@ -183,5 +190,104 @@ class BaseServiceTest < Minitest::Test
     )
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal(response, service_response.result)
+  end
+
+  def test_configure_service_using_credentials_in_env
+    file_path = File.join(File.dirname(__FILE__), "../../resources/ibm-credentials.env")
+    ENV["IBM_CREDENTIALS_FILE"] = file_path
+
+    authenticator = IBMCloudSdkCore::BasicAuthenticator.new(
+      username: "apikey",
+      password: "icp-xyz"
+    )
+    service = IBMCloudSdkCore::BaseService.new(
+      authenticator: authenticator,
+      service_name: "visual_recognition"
+    )
+    service.configure_service("visual_recognition")
+
+    assert_equal("https://gateway.ronaldo.com", service.service_url)
+    assert(service.disable_ssl_verification)
+    ENV.delete("IBM_CREDENTIALS_FILE")
+  end
+
+  def test_configure_service_using_credentials_in_vcap_match_outer_key
+    authenticator = IBMCloudSdkCore::BasicAuthenticator.new(
+      username: "apikey",
+      password: "icp-xyz"
+    )
+    service = IBMCloudSdkCore::BaseService.new(
+      authenticator: authenticator,
+      service_name: "key_to_service_entry_1"
+    )
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    service.configure_service("key_to_service_entry_1")
+
+    assert_equal("https://on.the.toolchainplatform.net/devops-insights/api", service.service_url)
+    ENV.delete("VCAP_SERVICES")
+  end
+
+  def test_configure_service_using_credentials_in_vcap_match_inner_key
+    authenticator = IBMCloudSdkCore::BasicAuthenticator.new(
+      username: "apikey",
+      password: "icp-xyz"
+    )
+    service = IBMCloudSdkCore::BaseService.new(
+      authenticator: authenticator,
+      service_name: "devops_insights"
+    )
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    service.configure_service("devops_insights")
+
+    assert_equal("https://ibmtesturl.net/devops_insights/api", service.service_url)
+    ENV.delete("VCAP_SERVICES")
+  end
+
+  def test_configure_service_using_credentials_in_vcap_no_matching_key
+    authenticator = IBMCloudSdkCore::BasicAuthenticator.new(
+      username: "apikey",
+      password: "icp-xyz"
+    )
+    service = IBMCloudSdkCore::BaseService.new(
+      authenticator: authenticator,
+      service_name: "different_name_two"
+    )
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    service.configure_service("different_name_two")
+
+    assert_equal("https://gateway.watsonplatform.net/different-name-two/api", service.service_url)
+    ENV.delete("VCAP_SERVICES")
+  end
+
+  def test_configure_service_using_credentials_in_vcap_empty_entry
+    authenticator = IBMCloudSdkCore::BasicAuthenticator.new(
+      username: "apikey",
+      password: "icp-xyz"
+    )
+    service = IBMCloudSdkCore::BaseService.new(
+      authenticator: authenticator,
+      service_name: "empty_service"
+    )
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    service.configure_service("empty_service")
+
+    assert_nil(service.service_url)
+    ENV.delete("VCAP_SERVICES")
+  end
+
+  def test_configure_service_using_credentials_in_vcap_no_creds
+    authenticator = IBMCloudSdkCore::BasicAuthenticator.new(
+      username: "apikey",
+      password: "icp-xyz"
+    )
+    service = IBMCloudSdkCore::BaseService.new(
+      authenticator: authenticator,
+      service_name: "no-creds-service-two"
+    )
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    service.configure_service("no-creds-service-two")
+
+    assert_nil(service.service_url)
+    ENV.delete("VCAP_SERVICES")
   end
 end

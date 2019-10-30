@@ -39,16 +39,11 @@ module IBMCloudSdkCore
 
       raise ArgumentError.new("authenticator must be provided") if @authenticator.nil?
 
-      if @service_name && !@service_url
-        config = get_service_properties(@service_name)
-        @service_url = config[:url] unless config.nil?
-      end
-
-      configure_http_client(disable_ssl_verification: @disable_ssl_verification)
-      @temp_headers = {}
       @conn = HTTP::Client.new(
         headers: {}
       ).use normalize_uri: { normalizer: NORMALIZER }
+      configure_service(@service_name)
+      @temp_headers = {}
     end
 
     def disable_ssl_verification=(disable_ssl_verification)
@@ -59,6 +54,15 @@ module IBMCloudSdkCore
       raise TypeError unless headers.instance_of?(Hash)
 
       headers.each_pair { |k, v| @conn.default_options.headers.add(k, v) }
+    end
+
+    def configure_service(service_name)
+      config = get_service_properties(service_name) if service_name
+
+      @service_url = config[:url] unless config.nil? || config[:url].nil?
+      disable_ssl_verification = explicitly_true(config[:disable_ssl]) unless config.nil? || config[:disable_ssl].nil?
+      # configure the http client if ssl is disabled
+      configure_http_client(disable_ssl_verification: disable_ssl_verification) if disable_ssl_verification
     end
 
     # @return [DetailedResponse]
@@ -143,8 +147,6 @@ module IBMCloudSdkCore
         ssl_context = OpenSSL::SSL::SSLContext.new
         ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
         @conn.default_options = { ssl_context: ssl_context }
-
-        @token_manager&.ssl_verification(true)
       end
       add_proxy(proxy) unless proxy.empty? || !proxy.dig(:address).is_a?(String) || !proxy.dig(:port).is_a?(Integer)
       add_timeout(timeout) unless timeout.empty? || (!timeout.key?(:per_operation) && !timeout.key?(:global))
