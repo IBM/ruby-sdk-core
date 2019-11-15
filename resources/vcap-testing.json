@@ -1,20 +1,159 @@
 {
   "salah": [
-  	{
-  		"credentials": {
-  			"password": "password",
-  			"url": "https://gateway.net/salah/api",
-  			"username": "mo"
-  		},
-  		"label": "goat",
-  		"name": "salah",
-  		"plan": "standard",
-  		"tags": [
-  			"watson",
-  			"ibm_created",
-  			"ibm_dedicated_public",
-  			"lite"
-  		]
-  	}
+    {
+      "credentials": {
+        "password": "password",
+        "url": "https://gateway.net/salah/api",
+        "username": "mo"
+      },
+      "label": "goat",
+      "name": "salah",
+      "plan": "standard",
+      "tags": [
+        "watson",
+        "ibm_created",
+        "ibm_dedicated_public",
+        "lite"
+      ]
+    }
+  ],
+  "visual_recognition": [
+    {
+      "credentials": {
+        "password": "password",
+        "url": "https://gateway.net/visual_recognition/api",
+        "username": "mo"
+      },
+      "label": "goat",
+      "name": "visual_recognition",
+      "plan": "standard",
+      "tags": [
+        "watson",
+        "ibm_created",
+        "ibm_dedicated_public",
+        "lite"
+      ]
+    }
+  ],
+  "devops_insights": [
+    {
+      "credentials": {
+        "password": "password",
+        "url": "https://gateway.net/visual_recognition/api",
+        "username": "mo"
+      },
+      "label": "goat",
+      "name": "devops_insights_1",
+      "plan": "standard",
+      "tags": [
+        "watson",
+        "ibm_created",
+        "ibm_dedicated_public",
+        "lite"
+      ]
+    },
+    {
+      "credentials": {
+        "password": "password",
+        "url": "https://ibmtesturl.net/devops_insights/api",
+        "username": "mo"
+      },
+      "label": "goat",
+      "name": "devops_insights",
+      "plan": "standard",
+      "tags": [
+        "watson",
+        "ibm_created",
+        "ibm_dedicated_public",
+        "lite"
+      ]
+    }
+  ],
+  "no_matching_name": [
+    {
+      "name": "different_name_two",
+      "label": "different_name_two",
+      "plan": "different_name__two_plan",
+      "credentials": {
+        "url": "https://gateway.watsonplatform.net/different-name-two/api",
+        "username": "not-a-username",
+        "password": "not-a-password"
+      }
+    },
+    {
+      "name": "different_name",
+      "label": "different_name",
+      "plan": "different_name_plan",
+      "credentials": {
+        "url": "https://gateway.watsonplatform.net/different-name/api",
+        "username": "not-a-username",
+        "password": "not-a-password"
+      }
+    }
+  ],
+  "key_to_service_entry_1": [
+    {
+      "name": "service_entry_key_and_key_to_service_entries",
+      "label": "devops-insights",
+      "plan": "standard",
+      "credentials": {
+        "url": "https://on.the.toolchainplatform.net/devops-insights/api",
+        "username": "not-a-username",
+        "password": "not-a-password"
+      }
+    },
+    {
+      "name": "service_entry_key_and_key_to_service_entries_two",
+      "label": "devops-insights",
+      "plan": "standard",
+      "credentials": {
+        "url": "https://on.the.toolchainplatform.net/devops-insights-2/api",
+        "username": "not-a-username",
+        "password": "not-a-password"
+      }
+    }
+  ],
+  "key_to_service_entry_2": [
+    {
+      "label": "devops-insights",
+      "plan": "standard",
+      "credentials": {
+        "url": "https://on.the.toolchainplatform.net/devops-insights-3/api",
+        "username": "not-a-username-3",
+        "password": "not-a-password-3"
+      }
+    }
+  ],
+  "service_entry_key_and_key_to_service_entries": [
+    {
+      "name": "service_entry_key-2",
+      "label": "devops-insights",
+      "plan": "elite",
+      "credentials": {
+        "url": "https://on.the.toolchainplatform.net/devops-insights-2/api",
+        "username": "not-a-username-2",
+        "password": "not-a-password-2"
+      }
+    }
+  ],
+  "empty_service": [
+
+  ],
+  "no-creds-service": [
+    {
+      "name": "no-creds-service-one",
+      "label": "devops-insights",
+      "plan": "elite",
+      "credentials": {
+        "url": "https://on.the.toolchainplatform.net/no-creds-service-one/api",
+        "username": "not-a-username-2",
+        "password": "not-a-password-2"
+      }
+    },
+    {
+      "name": "no-creds-service-two",
+      "label": "devops-insights",
+      "plan": "elite"
+    }
   ]
 }
