@@ -163,15 +163,15 @@ class BaseServiceTest < Minitest::Test
     authenticator = IBMCloudSdkCore::BearerTokenAuthenticator.new(bearer_token: "token")
     service = IBMCloudSdkCore::BaseService.new(
       service_name: "assistant",
-      authenticator: authenticator,
-      service_url: "https://gateway.watsonplatform.net/"
+      authenticator: authenticator
     )
+    service.service_url = "https://gateway.watsonplatform.net/assistant/api/"
     form_data = {}
     file = File.open(Dir.getwd + "/resources/cnc_test.pdf")
     filename = file.path if filename.nil? && file.respond_to?(:path)
     form_data[:file] = HTTP::FormData::File.new(file, content_type: "application/octet-stream", filename: filename)
 
-    stub_request(:post, "https://gateway.watsonplatform.net/").with do |req|
+    stub_request(:post, "https://gateway.watsonplatform.net/assistant/api/dummy/endpoint").with do |req|
       # Test the headers.
       assert_equal(req.headers["Accept"], "application/json")
       assert_match(%r{\Amultipart/form-data}, req.headers["Content-Type"])
@@ -180,7 +180,7 @@ class BaseServiceTest < Minitest::Test
       method: "POST",
       form: form_data,
       headers: { "Accept" => "application/json" },
-      url: ""
+      url: "dummy/endpoint"
     )
   end
 
@@ -217,7 +217,8 @@ class BaseServiceTest < Minitest::Test
     stub_request(:get, "https://we.the.best/music")
       .with(
         headers: {
-          "Host" => "we.the.best"
+          "Host" => "we.the.best",
+          "Authorization" => "Basic YXBpa2V5OmljcC14eXo="
         }
       ).to_return(status: 200, body: response.to_json, headers: headers)
     authenticator = IBMCloudSdkCore::BasicAuthenticator.new(
@@ -226,9 +227,9 @@ class BaseServiceTest < Minitest::Test
     )
     service = IBMCloudSdkCore::BaseService.new(
       service_name: "assistant",
-      authenticator: authenticator,
-      service_url: "https://we.the.best"
+      authenticator: authenticator
     )
+    service.service_url = "https://we.the.best"
     service_response = service.request(method: "GET", url: "/music", headers: {})
     assert_equal(response, service_response.result)
   end

@@ -26,8 +26,8 @@ module IBMCloudSdkCore
         @info = info
         # :nocov:
       end
-      @transaction_id = transaction_id
-      @global_transaction_id = global_transaction_id
+      @transaction_id = transaction_id || response.headers["X-Dp-Watson-Tran-Id"]
+      @global_transaction_id = global_transaction_id || response.headers["X-Global-Transaction-Id"]
     end
 
     def to_s
