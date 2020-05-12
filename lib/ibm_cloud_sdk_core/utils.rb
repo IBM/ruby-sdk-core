@@ -44,7 +44,7 @@ def load_from_credential_file(service_name, separator = "=")
   file_contents = File.open(credential_file_path, "r")
   config = {}
   file_contents.each_line do |line|
-    key_val = line.strip.split(separator)
+    key_val = line.strip.split(separator, 2)
     if key_val.length == 2 && !line.start_with?("#")
       key = parse_key(key_val[0].downcase, service_name) unless key_val[0].nil?
       config.store(key.to_sym, key_val[1]) unless key.nil?
