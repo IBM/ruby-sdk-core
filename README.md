@@ -1,5 +1,5 @@
-[![Build Status](https://travis-ci.com/IBM/ruby-sdk-core.svg?branch=master)](https://travis-ci.com/IBM/ruby-sdk-core)
-[![codecov](https://codecov.io/gh/IBM/ruby-sdk-core/branch/master/graph/badge.svg)](https://codecov.io/gh/IBM/ruby-sdk-core)
+[![Build Status](https://travis-ci.com/IBM/ruby-sdk-core.svg?branch=main)](https://travis-ci.com/IBM/ruby-sdk-core)
+[![codecov](https://codecov.io/gh/IBM/ruby-sdk-core/branch/main/graph/badge.svg)](https://codecov.io/gh/IBM/ruby-sdk-core)
 [![Gem Version](https://badge.fury.io/rb/ibm_cloud_sdk_core.svg)](https://rubygems.org/gems/ibm_cloud_sdk_core)
 
 # ruby-sdk-core

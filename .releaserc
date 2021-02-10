@@ -1,5 +1,5 @@
 {
-  "branch": "master",
+  "branch": "main",
   "debug": true,
   "verifyConditions": ["@semantic-release/git"],
   "plugins": [

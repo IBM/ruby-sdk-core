@@ -29,14 +29,14 @@ deploy:
   - provider: script
     script: npx semantic-release
     on:
-      branch: master
+      branch: main
       rvm: 2.5.3
 
   - provider: rubygems
     api_key: $RUBYGEMS_API_KEY
     gem: ibm_cloud_sdk_core
     on:
-      branch: master
+      branch: main
       rvm: 2.5.3
 
 matrix:
