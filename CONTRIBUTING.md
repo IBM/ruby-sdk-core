@@ -28,7 +28,7 @@ If you want to contribute to the repository, here's a quick guide:
   To make this easier, we recommend using the [Commitizen CLI](https://github.com/commitizen/cz-cli)
   with the `cz-conventional-changelog` adapter.  
 
-  9. Push your commit(s) to your fork and submit a pull request to the **master** branch.
+  9. Push your commit(s) to your fork and submit a pull request to the **main** branch.
 
 # Developer's Certificate of Origin 1.1
 
