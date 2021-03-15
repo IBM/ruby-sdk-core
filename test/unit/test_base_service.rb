@@ -113,7 +113,7 @@ class BaseServiceTest < Minitest::Test
         headers: {
           "Connection" => "close",
           "Host" => "iam.cloud.ibm.com",
-          "User-Agent" => "http.rb/4.1.1"
+          "User-Agent" => "http.rb/4.4.1"
         }
       )
       .to_return(status: 200, body: response.to_json, headers: {})

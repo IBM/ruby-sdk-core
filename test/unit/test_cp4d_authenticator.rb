@@ -37,7 +37,7 @@ class Cp4dAuthenticatorTest < Minitest::Test
           "Authorization" => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=",
           "Connection" => "close",
           "Host" => "icp.com",
-          "User-Agent" => "http.rb/4.1.1"
+          "User-Agent" => "http.rb/4.4.1"
         }
       )
       .to_return(status: 200, body: response.to_json, headers: {})
@@ -77,7 +77,7 @@ class Cp4dAuthenticatorTest < Minitest::Test
           "Authorization" => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=",
           "Connection" => "close",
           "Host" => "icp.com",
-          "User-Agent" => "http.rb/4.1.1"
+          "User-Agent" => "http.rb/4.4.1"
         }
       )
       .to_return(status: 200, body: response.to_json, headers: {})
