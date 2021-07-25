@@ -34,7 +34,7 @@ module IBMCloudSdkCore
 
     # Adds the Authorization header, if possible
     def authenticate(headers)
-      headers["Authorization"] = "Bearer #{@token_manager.access_token}"
+      headers["Authorization"] = "Bearer #{@token_manager.token}"
     end
 
     # Checks if all the inputs needed are present
