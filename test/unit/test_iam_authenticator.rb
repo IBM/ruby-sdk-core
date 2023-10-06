@@ -41,7 +41,7 @@ class IamAuthenticatorTest < Minitest::Test
         headers: {
           "Connection" => "close",
           "Host" => "iam.cloud.ibm.com",
-          "User-Agent" => "http.rb/4.4.1"
+          "User-Agent" => "http.rb/#{HTTP::VERSION}"
         }
       )
       .to_return(status: 200, body: response.to_json, headers: {})
@@ -83,7 +83,7 @@ class IamAuthenticatorTest < Minitest::Test
           "Connection" => "close",
           "Authorization" => "Basic Yng6Yng=",
           "Host" => "iam.cloud.ibm.com",
-          "User-Agent" => "http.rb/4.4.1"
+          "User-Agent" => "http.rb/#{HTTP::VERSION}"
         }
       )
       .to_return(status: 200, body: response.to_json, headers: {})
@@ -126,7 +126,7 @@ class IamAuthenticatorTest < Minitest::Test
         headers: {
           "Connection" => "close",
           "Host" => "iam.cloud.ibm.com",
-          "User-Agent" => "http.rb/4.4.1"
+          "User-Agent" => "http.rb/#{HTTP::VERSION}"
         }
       )
       .to_return(status: 200, body: response.to_json, headers: {})
@@ -173,7 +173,7 @@ class IamAuthenticatorTest < Minitest::Test
         headers: {
           "Connection" => "close",
           "Host" => "my.link",
-          "User-Agent" => "http.rb/4.4.1"
+          "User-Agent" => "http.rb/#{HTTP::VERSION}"
         }
       )
       .to_return(status: 200, body: response.to_json, headers: {})

@@ -114,7 +114,7 @@ class JWTTokenManagerTest < Minitest::Test
           "Authorization" => "Basic dXNlcm5hbWU6cGFzc3dvcmQ=",
           "Connection" => "close",
           "Host" => "icp.com",
-          "User-Agent" => "http.rb/4.4.1"
+          "User-Agent" => "http.rb/#{HTTP::VERSION}"
         }
       )
       .to_return(status: 200, body: response.to_json, headers: {})
