@@ -8,6 +8,10 @@ WebMock.disable_net_connect!(allow_localhost: true)
 
 # Unit tests for the IAM Token Manager
 class DetailedResponseTest < Minitest::Test
+  def example_request
+    HTTP::Request.new({ uri: "http://example.com", verb: :get })
+  end
+
   def test_detailed_response
     res = IBMCloudSdkCore::DetailedResponse.new(status: 200, headers: {}, body: {}, response: { code: 401 })
     assert_equal(res.status, 200)
@@ -20,7 +24,7 @@ class DetailedResponseTest < Minitest::Test
   end
 
   def test_detailed_response_when_only_response
-    response = IBMCloudSdkCore::DetailedResponse.new(response: HTTP::Response.new(status: 401, version: 1, body: {}))
+    response = IBMCloudSdkCore::DetailedResponse.new(response: HTTP::Response.new({ request: example_request, status: 401, version: 1, body: {} }))
     assert_equal(response.status, 401)
   end
 end
