@@ -3,7 +3,7 @@
 require("http")
 require("json")
 require("rbconfig")
-require_relative("./../version.rb")
+require_relative("./../version")
 require_relative("./jwt_token_manager")
 
 module IBMCloudSdkCore
@@ -17,6 +17,7 @@ module IBMCloudSdkCore
     TOKEN_NAME = "access_token"
 
     attr_accessor :token_info, :token_name, :client_id, :client_secret
+
     def initialize(
       apikey: nil,
       url: nil,
@@ -51,7 +52,7 @@ module IBMCloudSdkCore
         "response_type" => REQUEST_TOKEN_RESPONSE_TYPE
       }
       # @headers.add
-      response = request(
+      request(
         method: "POST",
         url: @url,
         headers: headers,
@@ -59,7 +60,6 @@ module IBMCloudSdkCore
         username: @client_id,
         password: @client_secret
       )
-      response
     end
   end
 end

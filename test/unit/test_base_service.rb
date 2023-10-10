@@ -2,7 +2,7 @@
 
 require("json")
 require("jwt")
-require_relative("./../test_helper.rb")
+require_relative("./../test_helper")
 require_relative("./../../lib/ibm_cloud_sdk_core/authenticators/basic_authenticator")
 require_relative("./../../lib/ibm_cloud_sdk_core/authenticators/config_based_authenticator_factory")
 require("webmock/minitest")
@@ -135,7 +135,7 @@ class BaseServiceTest < Minitest::Test
   end
 
   def test_vcap_services
-    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read("#{Dir.getwd}/resources/vcap-testing.json")).to_json
     authenticator = IBMCloudSdkCore::ConfigBasedAuthenticatorFactory.new.get_authenticator(service_name: "salah")
     service = IBMCloudSdkCore::BaseService.new(service_name: "salah", authenticator: authenticator)
     assert_equal(authenticator.username, "mo")
@@ -144,7 +144,7 @@ class BaseServiceTest < Minitest::Test
   end
 
   def test_dummy_request
-    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read("#{Dir.getwd}/resources/vcap-testing.json")).to_json
     stub_request(:get, "https://we.the.best/music")
       .with(
         headers: {
@@ -167,7 +167,7 @@ class BaseServiceTest < Minitest::Test
     )
     service.service_url = "https://gateway.watsonplatform.net/assistant/api/"
     form_data = {}
-    file = File.open(Dir.getwd + "/resources/cnc_test.pdf")
+    file = File.open("#{Dir.getwd}/resources/cnc_test.pdf")
     filename = file.path if filename.nil? && file.respond_to?(:path)
     form_data[:file] = HTTP::FormData::File.new(file, content_type: "application/octet-stream", filename: filename)
 
@@ -185,7 +185,7 @@ class BaseServiceTest < Minitest::Test
   end
 
   def test_dummy_request_fails
-    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read("#{Dir.getwd}/resources/vcap-testing.json")).to_json
     response = {
       "code" => "500",
       "error" => "Oh no"
@@ -262,7 +262,7 @@ class BaseServiceTest < Minitest::Test
       authenticator: authenticator,
       service_name: "key_to_service_entry_1"
     )
-    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read("#{Dir.getwd}/resources/vcap-testing.json")).to_json
     service.configure_service("key_to_service_entry_1")
 
     assert_equal("https://on.the.toolchainplatform.net/devops-insights/api", service.service_url)
@@ -278,7 +278,7 @@ class BaseServiceTest < Minitest::Test
       authenticator: authenticator,
       service_name: "devops_insights"
     )
-    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read("#{Dir.getwd}/resources/vcap-testing.json")).to_json
     service.configure_service("devops_insights")
 
     assert_equal("https://ibmtesturl.net/devops_insights/api", service.service_url)
@@ -294,7 +294,7 @@ class BaseServiceTest < Minitest::Test
       authenticator: authenticator,
       service_name: "different_name_two"
     )
-    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read("#{Dir.getwd}/resources/vcap-testing.json")).to_json
     service.configure_service("different_name_two")
 
     assert_equal("https://gateway.watsonplatform.net/different-name-two/api", service.service_url)
@@ -310,7 +310,7 @@ class BaseServiceTest < Minitest::Test
       authenticator: authenticator,
       service_name: "empty_service"
     )
-    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read("#{Dir.getwd}/resources/vcap-testing.json")).to_json
     service.configure_service("empty_service")
 
     assert_nil(service.service_url)
@@ -326,7 +326,7 @@ class BaseServiceTest < Minitest::Test
       authenticator: authenticator,
       service_name: "no-creds-service-two"
     )
-    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read("#{Dir.getwd}/resources/vcap-testing.json")).to_json
     service.configure_service("no-creds-service-two")
 
     assert_nil(service.service_url)

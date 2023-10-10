@@ -6,6 +6,7 @@ module IBMCloudSdkCore
   # Custom class for objects returned from API calls
   class DetailedResponse
     attr_reader :status, :headers, :result
+
     def initialize(status: nil, headers: nil, body: nil, response: nil)
       if status.nil? || headers.nil? || body.nil?
         @status = response.code

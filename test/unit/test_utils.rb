@@ -2,7 +2,7 @@
 
 require("json")
 require("jwt")
-require_relative("./../test_helper.rb")
+require_relative("./../test_helper")
 require_relative("./../../lib/ibm_cloud_sdk_core/authenticators/basic_authenticator")
 require_relative("./../../lib/ibm_cloud_sdk_core/authenticators/config_based_authenticator_factory")
 require("webmock/minitest")
@@ -93,7 +93,7 @@ class UtilsTest < Minitest::Test
   end
 
   def test_get_configuration_from_vcap
-    ENV["VCAP_SERVICES"] = JSON.parse(File.read(Dir.getwd + "/resources/vcap-testing.json")).to_json
+    ENV["VCAP_SERVICES"] = JSON.parse(File.read("#{Dir.getwd}/resources/vcap-testing.json")).to_json
     # get properties
     config = get_service_properties("equals-sign-test")
     auth_type = config[:auth_type] unless config.nil?

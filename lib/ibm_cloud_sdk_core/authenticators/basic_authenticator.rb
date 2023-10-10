@@ -1,13 +1,14 @@
 # frozen_string_literal: true
 
 require("json")
-require_relative("./authenticator.rb")
-require_relative("../utils.rb")
+require_relative("./authenticator")
+require_relative("../utils")
 
 module IBMCloudSdkCore
   # Basic Authenticator
   class BasicAuthenticator < Authenticator
     attr_accessor :username, :password, :authentication_type
+
     def initialize(vars)
       defaults = {
         username: nil,

@@ -6,6 +6,7 @@ module IBMCloudSdkCore
   # Custom exception class for errors returned from the APIs
   class ApiException < StandardError
     attr_reader :code, :error, :info, :transaction_id, :global_transaction_id
+
     # :param HTTP::Response response: The response object from the API
     def initialize(code: nil, error: nil, info: nil, transaction_id: nil, global_transaction_id: nil, response: nil)
       if code.nil? || error.nil?

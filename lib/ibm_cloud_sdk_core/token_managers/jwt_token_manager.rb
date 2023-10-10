@@ -4,7 +4,7 @@ require("http")
 require("json")
 require("jwt")
 require("rbconfig")
-require_relative("./../version.rb")
+require_relative("./../version")
 
 module IBMCloudSdkCore
   # Class to manage JWT Token Authentication
@@ -84,7 +84,7 @@ module IBMCloudSdkCore
       end
       return JSON.parse(response.body.to_s) if (200..299).cover?(response.code)
 
-      require_relative("./../api_exception.rb")
+      require_relative("./../api_exception")
       raise ApiException.new(response: response)
     end
   end

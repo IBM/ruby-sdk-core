@@ -4,10 +4,10 @@ require("http")
 require("rbconfig")
 require("stringio")
 require("json")
-require_relative("./version.rb")
-require_relative("./detailed_response.rb")
-require_relative("./api_exception.rb")
-require_relative("./utils.rb")
+require_relative("./version")
+require_relative("./detailed_response")
+require_relative("./api_exception")
+require_relative("./utils")
 require_relative("./authenticators/authenticator")
 require_relative("./authenticators/basic_authenticator")
 require_relative("./authenticators/bearer_token_authenticator")
@@ -25,6 +25,7 @@ module IBMCloudSdkCore
   class BaseService
     attr_accessor :service_name, :service_url
     attr_reader :conn, :authenticator, :disable_ssl_verification
+
     def initialize(vars)
       defaults = {
         authenticator: nil,
@@ -148,7 +149,7 @@ module IBMCloudSdkCore
         ssl_context.verify_mode = OpenSSL::SSL::VERIFY_NONE
         @conn.default_options = { ssl_context: ssl_context }
       end
-      add_proxy(proxy) unless proxy.empty? || !proxy.dig(:address).is_a?(String) || !proxy.dig(:port).is_a?(Integer)
+      add_proxy(proxy) unless proxy.empty? || !proxy[:address].is_a?(String) || !proxy[:port].is_a?(Integer)
       add_timeout(timeout) unless timeout.empty? || (!timeout.key?(:per_operation) && !timeout.key?(:global))
     end
 

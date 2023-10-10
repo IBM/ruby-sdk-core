@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 require("json")
-require_relative("./authenticator.rb")
-require_relative("../token_managers/iam_token_manager.rb")
-require_relative("../utils.rb")
+require_relative("./authenticator")
+require_relative("../token_managers/iam_token_manager")
+require_relative("../utils")
 
 module IBMCloudSdkCore
   # Basic Authenticator
   class IamAuthenticator < Authenticator
     attr_accessor :authentication_type, :disable_ssl_verification, :client_id, :client_secret
+
     def initialize(vars)
       defaults = {
         url: nil,

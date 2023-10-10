@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require("json")
-require_relative("./authenticator.rb")
+require_relative("./authenticator")
 
 module IBMCloudSdkCore
   # Authenticator

@@ -3,7 +3,7 @@
 require("http")
 require("json")
 require("rbconfig")
-require_relative("./../version.rb")
+require_relative("./../version")
 require_relative("./jwt_token_manager")
 
 module IBMCloudSdkCore

@@ -13,7 +13,7 @@ def get_service_properties(service_name)
 end
 
 def check_bad_first_or_last_char(str)
-  return str.start_with?("{", "\"") || str.end_with?("}", "\"") unless str.nil?
+  str.start_with?("{", "\"") || str.end_with?("}", "\"") unless str.nil?
 end
 
 # checks if the provided value is truthy
@@ -29,13 +29,13 @@ def load_from_credential_file(service_name, separator = "=")
 
   # Top-level directory of the project
   if credential_file_path.nil?
-    file_path = File.join(File.dirname(__FILE__), "/../../" + DEFAULT_CREDENTIALS_FILE_NAME)
+    file_path = File.join(File.dirname(__FILE__), "/../../#{DEFAULT_CREDENTIALS_FILE_NAME}")
     credential_file_path = file_path if File.exist?(file_path)
   end
 
   # Home directory
   if credential_file_path.nil?
-    file_path = ENV["HOME"] + "/" + DEFAULT_CREDENTIALS_FILE_NAME
+    file_path = "#{ENV["HOME"]}/#{DEFAULT_CREDENTIALS_FILE_NAME}"
     credential_file_path = file_path if File.exist?(file_path)
   end
 
