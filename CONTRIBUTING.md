@@ -6,9 +6,9 @@ If you want to contribute to the repository, here's a quick guide:
   2. Clone the repository into a local directory.  
 
   3. Install `Ruby`. Supported versions in the core are:
-     - 2.3.7
-     - 2.4.5
-     - 2.5.3
+     - 2.7
+     - 3.0
+     - 3.1
   4. Run
      ```sh
      gem install bundler

@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary = "Official IBM Cloud SDK core library"
   spec.homepage = "https://www.github.com/IBM"
   spec.licenses = ["Apache-2.0"]
-  spec.required_ruby_version = ">= 2.3"
+  spec.required_ruby_version = ">= 2.7"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
   # to allow pushing to a single host or delete this section to allow pushing to any host.
@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "http", "~> 5.1.1"
   spec.add_runtime_dependency "jwt", "~> 2.2.1"
 
-  spec.add_development_dependency "bundler", "~> 1.6"
+  spec.add_development_dependency "bundler", "~> 2"
   spec.add_development_dependency "codecov", "~> 0.1"
   spec.add_development_dependency "dotenv", "~> 2.4"
   spec.add_development_dependency "httplog", "~> 1.0"
@@ -45,7 +45,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "minitest-reporters", "~> 1.3"
   spec.add_development_dependency "minitest-retry", "~> 0.1"
   spec.add_development_dependency "rake", "~> 13.0"
-  spec.add_development_dependency "rubocop", "0.62"
+  spec.add_development_dependency "rubocop", ">=1.40"
+  spec.add_development_dependency "rubocop-performance"
+  spec.add_development_dependency "rubocop-rails"
   spec.add_development_dependency "simplecov", "~> 0.16"
   spec.add_development_dependency "webmock", "~> 3.4"
 end
