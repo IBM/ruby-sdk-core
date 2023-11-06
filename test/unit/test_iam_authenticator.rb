@@ -2,7 +2,7 @@
 
 require("json")
 require("jwt")
-require_relative("./../test_helper.rb")
+require_relative("./../test_helper")
 require_relative("./../../lib/ibm_cloud_sdk_core/authenticators/basic_authenticator")
 require_relative("./../../lib/ibm_cloud_sdk_core/authenticators/config_based_authenticator_factory")
 require("webmock/minitest")
@@ -136,7 +136,7 @@ class IamAuthenticatorTest < Minitest::Test
     refute_nil(authenticator)
     assert_equal(authenticator.instance_variable_get(:@token_manager).access_token, token)
     headers = {}
-    authenticated_headers = { "Authorization" => "Bearer " + token }
+    authenticated_headers = { "Authorization" => "Bearer #{token}" }
     authenticator.authenticate(headers)
     assert_equal(headers, authenticated_headers)
   end

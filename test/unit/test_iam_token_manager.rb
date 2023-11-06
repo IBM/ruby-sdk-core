@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative("./../test_helper.rb")
+require_relative("./../test_helper")
 require("webmock/minitest")
 
 WebMock.disable_net_connect!(allow_localhost: true)

@@ -19,7 +19,7 @@ if ENV["COVERAGE"]
 end
 
 require("minitest/autorun")
-require_relative("./../lib/ibm_cloud_sdk_core.rb")
+require_relative("./../lib/ibm_cloud_sdk_core")
 require("minitest/retry")
 
 Minitest::Retry.use!

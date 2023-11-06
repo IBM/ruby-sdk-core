@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require("json")
-require_relative("./authenticator.rb")
-require_relative("./basic_authenticator.rb")
-require_relative("./bearer_token_authenticator.rb")
-require_relative("./cp4d_authenticator.rb")
-require_relative("./iam_authenticator.rb")
-require_relative("./no_auth_authenticator.rb")
-require_relative("../utils.rb")
+require_relative("./authenticator")
+require_relative("./basic_authenticator")
+require_relative("./bearer_token_authenticator")
+require_relative("./cp4d_authenticator")
+require_relative("./iam_authenticator")
+require_relative("./no_auth_authenticator")
+require_relative("../utils")
 
 module IBMCloudSdkCore
   # Authenticator
@@ -17,7 +17,7 @@ module IBMCloudSdkCore
     # :return: the authenticator
     def get_authenticator(service_name:)
       config = get_service_properties(service_name)
-      return construct_authenticator(config) unless config.nil? || config.empty?
+      construct_authenticator(config) unless config.nil? || config.empty?
     end
 
     def construct_authenticator(config)
@@ -32,7 +32,8 @@ module IBMCloudSdkCore
       return BearerTokenAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_BEARER_TOKEN).zero?
       return CloudPakForDataAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_CP4D).zero?
       return IamAuthenticator.new(config) if auth_type.casecmp(AUTH_TYPE_IAM).zero?
-      return NoAuthAuthenticator.new if auth_type.casecmp(AUTH_TYPE_NO_AUTH).zero?
+
+      NoAuthAuthenticator.new if auth_type.casecmp(AUTH_TYPE_NO_AUTH).zero?
     end
   end
 end
