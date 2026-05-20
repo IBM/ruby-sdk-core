@@ -18,15 +18,6 @@ namespace :test do
     t.warning = true
     t.deps = [:rubocop]
   end
-
-  Rake::TestTask.new do |t|
-    t.name = "appveyor_status"
-    t.description = "Checks to ensure that AppVeyor tests pass before deploying from Travis"
-    t.libs << "test"
-    t.test_files = FileList["test/appveyor_status.rb"]
-    t.verbose = false
-    t.warning = false
-  end
 end
 
 desc "Run unit tests"
@@ -36,7 +27,7 @@ end
 
 desc "Run tests and generate a code coverage report"
 task :coverage do
-  ENV["COVERAGE"] = "true" if ENV["TRAVIS_RUBY_VERSION"] == "2.5.1" || ENV["CI"].nil?
+  ENV["COVERAGE"] = "true" if RUBY_VERSION.start_with?("2.7.") || ENV["CI"].nil?
   Rake::Task["test"].execute
 end
 

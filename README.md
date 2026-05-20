@@ -1,4 +1,4 @@
-[![Build Status](https://app.travis-ci.com/IBM/ruby-sdk-core.svg?branch=main)](https://app.travis-ci.com/IBM/ruby-sdk-core)
+[![CI](https://github.com/IBM/ruby-sdk-core/actions/workflows/ci.yaml/badge.svg)](https://github.com/IBM/ruby-sdk-core/actions/workflows/ci.yaml)
 [![codecov](https://codecov.io/gh/IBM/ruby-sdk-core/branch/main/graph/badge.svg)](https://codecov.io/gh/IBM/ruby-sdk-core)
 [![Gem Version](https://badge.fury.io/rb/ibm_cloud_sdk_core.svg)](https://rubygems.org/gems/ibm_cloud_sdk_core)
 
