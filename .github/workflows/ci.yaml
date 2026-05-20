@@ -39,7 +39,7 @@ jobs:
     - name: Run tests
       run: bundle exec rake
     - name: Upload code coverage
-      if: ${{ github.ref == 'refs/heads/master' && matrix.ruby-version == '2.7' }}
+      if: ${{ github.ref == 'refs/heads/main' && matrix.ruby-version == '2.7' }}
       uses: codecov/codecov-action@v6
       env:
         CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
