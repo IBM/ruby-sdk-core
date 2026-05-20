@@ -16,8 +16,8 @@ class IAMTokenManagerTest < Minitest::Test
       "iss": "sss",
       "aud": "sss",
       "uid": "sss",
-      "iat": Time.now.to_i + 3600,
-      "exp": Time.now.to_i
+      "iat": Time.now.to_i,
+      "exp": Time.now.to_i + 3600
     }
     token = JWT.encode token_layout, "secret", "HS256"
     response = {
@@ -108,8 +108,8 @@ class IAMTokenManagerTest < Minitest::Test
       "iss" => "sss",
       "aud" => "sss",
       "uid" => "sss",
-      "iat" => 3600,
-      "exp" => Time.now.to_i
+      "iat" => Time.now.to_i,
+      "exp" => Time.now.to_i + 3600
     }
 
     access_token = JWT.encode(access_token_layout, "secret", "HS256", "kid": "230498151c214b788dd97f22b85410a5")
