@@ -72,7 +72,7 @@ def load_from_vcap_services(service_name)
     services = JSON.parse(vcap_services)
     credentials = ""
     # search for matching inner name value
-    services.each do |_key, val|
+    services.each_value do |val|
       service = val.detect { |item| item["name"] == service_name }
       credentials = service["credentials"] unless service.nil?
       break unless credentials.nil? || credentials.empty?
