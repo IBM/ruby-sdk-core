@@ -4,32 +4,16 @@ require "dotenv/tasks"
 require "rake/testtask"
 require "rubocop/rake_task"
 
-task default: %w[def]
-
 RuboCop::RakeTask.new
 
-namespace :test do
-  Rake::TestTask.new do |t|
-    t.name = "unit"
-    t.description = "Run unit tests"
-    t.libs << "test"
-    t.test_files = FileList["test/unit/*.rb"]
-    t.verbose = true
-    t.warning = true
-    t.deps = [:rubocop]
-  end
+Rake::TestTask.new do |t|
+  t.name = "test"
+  t.description = "Run unit tests"
+  t.libs << "test"
+  t.test_files = FileList["test/unit/*.rb"]
+  t.verbose = true
+  t.warning = true
+  t.deps = [:rubocop]
 end
 
-desc "Run unit tests"
-task :test do
-  Rake::Task["test:unit"].invoke
-end
-
-desc "Run tests and generate a code coverage report"
-task :coverage do
-  ENV["COVERAGE"] = "true" if RUBY_VERSION.start_with?("2.7.") || ENV["CI"].nil?
-  Rake::Task["test"].execute
-end
-
-task def: %i[coverage] do
-end
+task default: :test
