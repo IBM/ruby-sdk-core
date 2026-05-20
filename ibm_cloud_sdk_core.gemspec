@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "http", "~> 5.1"
   spec.add_runtime_dependency "jwt", "~> 3.2"
 
-  spec.add_development_dependency "bundler", "~> 2"
+  spec.add_development_dependency "bundler", "> 2"
   spec.add_development_dependency "codecov", "~> 0.1"
   spec.add_development_dependency "dotenv", "~> 2.4"
   spec.add_development_dependency "httplog", "~> 1.0"
