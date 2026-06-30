@@ -36,7 +36,7 @@ module IBMCloudSdkCore
     end
 
     def authenticate(headers)
-      headers["Authorization"] = "Bearer #{@token_manager.access_token}"
+      headers["Authorization"] = "Bearer #{@token_manager.token}"
     end
 
     def validate
